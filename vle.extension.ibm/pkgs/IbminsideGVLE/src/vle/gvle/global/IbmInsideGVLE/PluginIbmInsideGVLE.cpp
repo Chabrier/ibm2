@@ -45,7 +45,11 @@
 #include <vle/vpz/Classes.hpp>
 #include <vle/vpz/Class.hpp>
 #include <vle/vpz/BaseModel.hpp>
+#include <fstream>
 #include <iostream>
+
+#include <vle/vpz/AtomicModel.hpp>
+#include <vle/gvle/ModelingPlugin.hpp>
 
 namespace vle {
 namespace gvle {
@@ -337,6 +341,39 @@ public:
 	void onAddClasses()
 	{
 		std::cout << "Add Class" << std::endl;
+        //PluginName vle.forrester/Forrester0x61a588 
+        //classname lol0x61a588
+        //namespace tpForrester
+        const std::string pluginname = "vle.forrester/Forrester";
+        ModelingPluginPtr plugin = mGVLE->pluginFactory().getModelingPlugin(pluginname, mGVLE->currentPackage().name());
+		
+        //AtomicModelBox atomicModelBox = new AtomicModelBox(mXML, mGVLE->getModeling(), mGVLE);
+        //atomicModelBox->show((vpz::AtomicModel*)model);
+        vpz::AtomicModel* atomicModel = new vpz::AtomicModel("MyAtomicModel", mGVLE->getModeling()->getTopModel()); 
+        /*vpz::Conditions* mCond = new vpz::Conditions(mGVLE->getModeling()->conditions());
+        vpz::Dynamics* mDyn = new vpz::Dynamics(mGVLE->getModeling()->dynamics());
+        vpz::Observables* mObs = new vpz::Observables(mGVLE->getModeling()->observables());*/
+        vpz::Conditions mCond = mGVLE->getModeling()->conditions();
+        vpz::Dynamic mDyn("NameOfTheDyn");
+        //vpz::Dynamic mDyn = mGVLE->getModeling()->dynamics();
+        vpz::Observables mObs = mGVLE->getModeling()->observables();
+        const std::string classname = "MyClassName";
+        const std::string namespace_ = "IbminsideGVLE";
+//create (vpz::AtomicModel &atom, vpz::Dynamic &dynamic, vpz::Conditions &conditions, vpz::Observables &observables, const std::string &classname, const std::string &namespace_)
+        if (plugin->create(*atomicModel, mDyn, mCond, mObs, classname, namespace_))
+        {
+            const std::string& buffer = plugin->source();
+            std::string filename = mGVLE->getPackageSrcFile(classname + ".cpp");
+
+            try {
+                std::ofstream f(filename.c_str());
+                f.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+                f << buffer;
+            } catch(const std::ios_base::failure& e) {
+                throw utils::ArgError(fmt(
+                        _("Cannot store buffer in file '%1%'")) % filename);
+            }
+        }
 	}
 
 	void onRemoveClass()
@@ -404,6 +441,12 @@ public:
 	vpz::Classes                mClassesCopy;
 	std::set <std::string>            mDeletedClasses;
 	Gtk::Button* mButtonApply;
+
+    //Pour ouvrir le plugin
+    /*vpz::AtomicModel&                   mAtom;
+    vpz::Dynamic&                       mDynamic;
+    vpz::Conditions&                    mConditions;
+    vpz::Observables&                   mObservables;*/
 };
 
 }

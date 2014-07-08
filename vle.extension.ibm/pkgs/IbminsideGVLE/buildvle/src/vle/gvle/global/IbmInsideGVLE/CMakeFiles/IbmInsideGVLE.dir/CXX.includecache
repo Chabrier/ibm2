@@ -37,13 +37,23 @@ gtkmm/button.h
 -
 gtkmm/action.h
 -
+gtkmm/comboboxtext.h
+-
 vle/utils/Spawn.hpp
 -
 vle/vpz/Classes.hpp
 -
 vle/vpz/Class.hpp
 -
+vle/vpz/BaseModel.hpp
+-
+fstream
+-
 iostream
+-
+vle/vpz/AtomicModel.hpp
+-
+vle/gvle/ModelingPlugin.hpp
 -
 
 /home/gcicera/local/include/vle-1.3/vle/DllDefines.hpp
@@ -301,6 +311,8 @@ boost/shared_ptr.hpp
 -
 
 /home/gcicera/local/include/vle-1.3/vle/gvle/PluginFactory.hpp
+vle/gvle/DllDefines.hpp
+-
 vle/utils/ModuleManager.hpp
 -
 vle/gvle/GlobalPlugin.hpp
@@ -6804,6 +6816,14 @@ gtkmm/cellrenderer.h
 gtkmm/treeview.h
 -
 gtkmm/enums.h
+-
+
+/usr/include/gtkmm-3.0/gtkmm/comboboxtext.h
+glibmm/ustring.h
+-
+sigc++/sigc++.h
+-
+gtkmm/combobox.h
 -
 
 /usr/include/gtkmm-3.0/gtkmm/container.h
