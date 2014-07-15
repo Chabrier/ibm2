@@ -42,6 +42,7 @@
 #include <gtkmm/action.h>
 #include <gtkmm/comboboxtext.h>
 #include <vle/utils/Spawn.hpp>
+#include <vle/utils/Template.hpp>
 #include <vle/vpz/Classes.hpp>
 #include <vle/vpz/Class.hpp>
 #include <vle/vpz/BaseModel.hpp>
@@ -50,6 +51,9 @@
 
 #include <vle/vpz/AtomicModel.hpp>
 #include <vle/gvle/ModelingPlugin.hpp>
+#include <vle/vpz/Class.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/trim.hpp>
 
 namespace vle {
 namespace gvle {
@@ -108,7 +112,8 @@ public:
     	for (std::list < sigc::connection >::iterator it = mList.begin();
     	     it != mList.end(); ++it) {
     	    it->disconnect();
-    	}
+    	} 
+        
     }
 
     /**
@@ -169,11 +174,13 @@ public:
 		//openVpz();
 		if (openVpz())
 		{
-            //mGVLE->getModeling()->vpz(); //Return vpz
+            // //Return vpz
             mXml->get_widget("treeviewClassName", mClasses);
             mClassesListStore = Gtk::ListStore::create(mClassesColumns);
             mClasses->set_model(mClassesListStore);
             initClassesColumnName();
+            mClassesCopy = mGVLE->getModeling()->vpz().project().classes(); //Crash here after new model and close if TopModel
+            //mClassesCopy = mGVLE->getModeling()->getClassModel();
             fillClasses();
 			initMenuPopupClasses();
         
@@ -183,15 +190,32 @@ public:
 	        mXml->get_widget("buttonCancel", mButtonApply);
 		    mButtonApply->signal_clicked().connect(sigc::mem_fun(*this,
                                                      &PluginIbmInsideGVLE::onCancel));
+            createControleurAndDyn("Controleur");
     	}
 	}
 
 	void onApply()
 	{
-		mGVLE->getModeling()->getClassModel() = mClassesCopy; //Ajout d'un accesseur l152 in Modeling
-		mGVLE->getModeling()->setModified(true);
-		// applyRenaming();
+        std::cout << "onapply" << std::endl;
+        //mAtomicModel->setParent(mGVLE->getModeling()->getTopModel());
+		//mGVLE->getModeling()->getClassModel() = mClassesCopy; //Ajout d'un accesseur l152 in Modeling
+        mGVLE->getModeling()->vpz().project().classes() = mClassesCopy;
+        std::set<std::string>::const_iterator 
+            sit (mDeletedClasses.begin()), 
+            send(mDeletedClasses.end());
+        for (;sit!=send;++sit) {
+            if (mGVLE->getModeling()->vpz().project().dynamics().exist(*sit))
+            mGVLE->getModeling()->vpz().project().dynamics().del(*sit);
+        }
+
+        mDeletedClasses.clear();
+        mClassesCopy.clear(); 
+        mGVLE->getModeling()->setModified(true);
+
 		mWindow->hide();
+        mGVLE->redrawModelClassBox();
+        //Refresh models and classes
+        mGVLE->onSave();
 	}
 
 	void onCancel()
@@ -222,12 +246,48 @@ public:
         return false;
 	}
 
+    void createControleurAndDyn(std::string name) {
+        if (!existControleur(name)) {
+            createControleur(name);
+        }
+        if (!existDynControleur(name)) {
+            createDynControleur(name);
+        }
+    }
+
+    bool existControleur(std::string name) {
+        return mGVLE->getModeling()->getTopModel()->exist(name);
+    }
+
+    void createControleur(std::string name) {
+        vpz::AtomicModel* atomicModel = new vpz::AtomicModel(name, mGVLE->getModeling()->getTopModel());
+        atomicModel->setPosition(50, 50);
+        atomicModel->setSize(40, 20);
+        
+        if (existDynControleur(name)) {
+            atomicModel->setDynamics("dyn" + name);
+        }       
+        mGVLE->redrawModelTreeBox();
+    }
+    
+    bool existDynControleur(std::string name) {
+        return mGVLE->getModeling()->vpz().project().dynamics().exist("dyn" + name);
+    }
+
+    void createDynControleur(std::string name) {
+        vpz::Dynamic dyn("dyn" + name);
+        dyn.setLibrary(name);
+        dyn.setPackage(mGVLE->currentPackage().name());
+        mGVLE->getModeling()->vpz().project().dynamics().add(dyn);
+        vpz::AtomicModel* atom = mGVLE->getModeling()->getTopModel()->getModel(name)->toAtomic();
+        atom->setDynamics(dyn.name());
+    }
+
     /*
     * Print the class list of the vpz selected
     */
 	void showListClasses()
 	{
-        mClassesCopy = mGVLE->getModeling()->getClassModel();
 		std::map<std::string, vpz::Class> listClass = mClassesCopy.list();
 		for (std::map<std::string, vpz::Class>::iterator it=listClass.begin() ; it!=listClass.end() ; ++it)
 		{
@@ -270,13 +330,37 @@ public:
     void onEditionStarted(Gtk::CellEditable* /*celleditable*/,
     const Glib::ustring& path)
     {
-        std::cout << "onEditionStarted " << path << std::endl;
+        Gtk::TreeModel::Path selectedpath(path);
+        Gtk::TreeModel::iterator it = mClassesListStore->get_iter(selectedpath);
+
+        Gtk::TreeModel::Row row = *it;
+        if (row) {
+            mOldName = row.get_value(mClassesColumns.mName);
+        }
     }
 
     void onEdition(const Glib::ustring& /*pathstring*/,
     const Glib::ustring& newstring)
     {
-        std::cout << "onEdition " << newstring << std::endl;
+        std::string newName = newstring.raw();
+        boost::trim(newName);
+        std::string oldName = mOldName.raw();
+
+        Glib::RefPtr < Gtk::TreeView::Selection > ref = mClasses->get_selection();
+        if (ref) {
+            Gtk::TreeModel::iterator it = ref->get_selected();
+            if (*it and not newName.empty() and newName != oldName) {
+                Gtk::TreeModel::Row row = *it;
+                if (not mClassesCopy.exist(newName) and isValidName(newName)) {
+                    mClassesCopy.rename(mOldName, newName);
+                    mRenameList.push_back(std::make_pair(oldName, newName));
+                    row[mClassesColumns.mName] = newstring;
+
+                } else {
+                    row[mClassesColumns.mName] = mOldName;
+                }
+            }
+        }
     }
     
 	/*
@@ -284,7 +368,6 @@ public:
 	*/
     void fillClasses()
     {
-		mClassesCopy = mGVLE->getModeling()->getClassModel();
 		std::map<std::string, vpz::Class> listClass = mClassesCopy.list();
 		for (std::map<std::string, vpz::Class>::iterator it=listClass.begin() ; it!=listClass.end() ; ++it) 
 		{
@@ -297,6 +380,12 @@ public:
 	    }
     	mIter = mClassesListStore->children().end();
     }
+    
+    void refreshClassesList()
+    {
+        mClassesListStore->clear();
+        fillClasses();
+    }
 
 	/*
 	* Add or Remove menu with right click
@@ -308,8 +397,11 @@ public:
     
         mActionGroup->add(Gtk::Action::create("ClasBox_ContextNew", _("_New")),
 	    sigc::mem_fun(*this, &PluginIbmInsideGVLE::onAddClasses));
+        mActionGroup->add(Gtk::Action::create("ClasBox_ContextModify", _("_Modify")),
+	    sigc::mem_fun(*this, &PluginIbmInsideGVLE::onModifyClasses));
         mActionGroup->add(Gtk::Action::create("ClasBox_ContextRemove", _("_Remove")),
 	    sigc::mem_fun(*this, &PluginIbmInsideGVLE::onRemoveClass));
+        
 
         mUIManager = Gtk::UIManager::create();
         mUIManager->insert_action_group(mActionGroup);
@@ -318,6 +410,7 @@ public:
 	    "<ui>"
 	    "  <popup name='ClasBox_Popup'>"
         "      <menuitem action='ClasBox_ContextNew'/>"
+        "      <menuitem action='ClasBox_ContextModify'/>"
 	    "      <menuitem action='ClasBox_ContextRemove'/>"
 	    "  </popup>"
 	    "</ui>";
@@ -338,47 +431,182 @@ public:
                                       &PluginIbmInsideGVLE::onButtonRealeaseClasses)));
     }
 
+/*    void onNewClasses() {
+        std::string modelName;
+
+        Gtk::TreeIter iter = mClassesListStore->append();
+        if (iter) {
+
+            std::string modelName = "newClasses";
+            int copyNumber = 1;
+            std::string suffixe;
+            while (mClassesCopy.exist(modelName)) {
+                suffixe = "_" + boost::lexical_cast < std::string >(copyNumber);
+                modelName = "newClasses" + suffixe;
+
+                copyNumber++;
+            };
+
+            vpz::Class& new_class = mClassesCopy.add(modelName);
+
+            Gtk::ListStore::Row row = *iter;
+            row[mClassesColumns.mName] = modelName;
+
+            Gtk::TreeViewColumn* nameCol = mClasses->get_column(mColumnName - 1);
+            mClasses->set_cursor(mClassesListStore->get_path(iter),*nameCol,true);
+
+//bouton.signal_clicked().connect(sigc::bind<std::string>(sigc::mem_fun(fenetre, &Gtk::Window::set_title)
+            //mClasses->signal_cursor_changed().connect(sigc::bind<vpz::Class&>(sigc::mem_fun(*this, &PluginIbmInsideGVLE::onAddClasses), new_class));
+        }
+    }*/
+
+
 	void onAddClasses()
 	{
 		std::cout << "Add Class" << std::endl;
-        //PluginName vle.forrester/Forrester0x61a588 
-        //classname lol0x61a588
-        //namespace tpForrester
-        const std::string pluginname = "vle.forrester/Forrester";
-        ModelingPluginPtr plugin = mGVLE->pluginFactory().getModelingPlugin(pluginname, mGVLE->currentPackage().name());
-		
-        //AtomicModelBox atomicModelBox = new AtomicModelBox(mXML, mGVLE->getModeling(), mGVLE);
-        //atomicModelBox->show((vpz::AtomicModel*)model);
-        vpz::AtomicModel* atomicModel = new vpz::AtomicModel("MyAtomicModel", mGVLE->getModeling()->getTopModel()); 
-        /*vpz::Conditions* mCond = new vpz::Conditions(mGVLE->getModeling()->conditions());
-        vpz::Dynamics* mDyn = new vpz::Dynamics(mGVLE->getModeling()->dynamics());
-        vpz::Observables* mObs = new vpz::Observables(mGVLE->getModeling()->observables());*/
-        vpz::Conditions mCond = mGVLE->getModeling()->conditions();
-        vpz::Dynamic mDyn("NameOfTheDyn");
-        //vpz::Dynamic mDyn = mGVLE->getModeling()->dynamics();
-        vpz::Observables mObs = mGVLE->getModeling()->observables();
-        const std::string classname = "MyClassName";
-        const std::string namespace_ = "IbminsideGVLE";
-//create (vpz::AtomicModel &atom, vpz::Dynamic &dynamic, vpz::Conditions &conditions, vpz::Observables &observables, const std::string &classname, const std::string &namespace_)
-        if (plugin->create(*atomicModel, mDyn, mCond, mObs, classname, namespace_))
-        {
-            const std::string& buffer = plugin->source();
-            std::string filename = mGVLE->getPackageSrcFile(classname + ".cpp");
+        std::string modelName;
 
-            try {
-                std::ofstream f(filename.c_str());
-                f.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-                f << buffer;
-            } catch(const std::ios_base::failure& e) {
-                throw utils::ArgError(fmt(
-                        _("Cannot store buffer in file '%1%'")) % filename);
-            }
+        Gtk::TreeIter iter = mClassesListStore->append();
+        if (iter) {
+
+            std::string modelName = "newClasses";
+            int copyNumber = 1;
+            std::string suffixe;
+            while (mClassesCopy.exist(modelName)) {
+                suffixe = "_" + boost::lexical_cast < std::string >(copyNumber);
+                modelName = "newClasses" + suffixe;
+
+                copyNumber++;
+            };
+
+            vpz::Class& new_class = mClassesCopy.add(modelName);
+
+            Gtk::ListStore::Row row = *iter;
+            row[mClassesColumns.mName] = modelName;
+
+            Gtk::TreeViewColumn* nameCol = mClasses->get_column(mColumnName - 1);
+            mClasses->set_cursor(mClassesListStore->get_path(iter),*nameCol,true);
+        
+            
+
+            const std::string pluginname = "vle.forrester/Forrester";
+            ModelingPluginPtr plugin = mGVLE->pluginFactory().getModelingPlugin(pluginname, mGVLE->currentPackage().name());
+            vpz::Conditions& cond = mGVLE->getModeling()->conditions();
+            vpz::Dynamic dyn(new_class.name());
+            vpz::Observables& obs = mGVLE->getModeling()->observables();
+            mAtomicModel = new vpz::AtomicModel(new_class.name(), NULL);//mGVLE->getModeling()->getTopModel()
+            //mAtomicModel->setPosition(50, 50);
+            //std::string classname = modelName;
+            const std::string namespace_ = "IbminsideGVLE";
+
+            if (plugin->create(*mAtomicModel, dyn, cond, obs, new_class.name(), namespace_))
+            {
+                const std::string& buffer = plugin->source();
+                std::string filename = mGVLE->getPackageSrcFile(new_class.name() + ".cpp");
+
+                //vpz::Class& new_class = mClassesCopy.add(classname);
+                new_class.setModel(mAtomicModel);
+                dyn.setLibrary(new_class.name());
+                dyn.setPackage(mGVLE->currentPackage().name());
+                mGVLE->getModeling()->vpz().project().dynamics().add(dyn);
+                mAtomicModel->setDynamics(dyn.name());
+                try {
+                    std::ofstream f(filename.c_str());
+                    f.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+                    f << buffer;
+                } catch(const std::ios_base::failure& e) {
+                    throw utils::ArgError(fmt(
+                            _("Cannot store buffer in file '%1%'")) % filename);
+                }
+                refreshClassesList();
+            
+}
         }
 	}
 
+    /*
+    * Modify the selected class
+    */
+    void onModifyClasses()
+    {
+        Glib::RefPtr < Gtk::TreeView::Selection > ref = mClasses->get_selection();
+		if (ref) {
+		    Gtk::TreeModel::iterator iter = ref->get_selected();
+		    if (iter) {
+                Gtk::TreeModel::Row row = *iter;
+                std::string name(row.get_value(mClassesColumns.mName));
+
+                std::cout << "Modify Class" << std::endl;
+                //const std::string pluginname = "vle.forrester/Forrester";
+
+                //ModelingPluginPtr plugin = mGVLE->pluginFactory().getModelingPlugin(pluginname, mGVLE->currentPackage().name());
+
+                //Trouver modèle atomique, dyn...
+                //mAtomicModel = mGVLE->getModeling()->vpz().project().
+                //vpz::Dynamic dyn = mGVLE->getModeling()->dynamics().get(name);
+std::cout << name << std::endl;
+                vpz::Dynamic dyn = mGVLE->getModeling()->vpz().project().dynamics().get(name);
+            
+                vpz::Conditions& cond = mGVLE->getModeling()->experiment().conditions();
+                vpz::Observables& obs = mGVLE->getModeling()->observables();
+                vpz::Class& my_class = mClassesCopy.get(name);
+                mAtomicModel = my_class.model()->toAtomic();
+
+                std::string filename = mGVLE->getPackageSrcFile(name + ".cpp");
+std::cout << "filename " << filename << std::endl;
+           /************************************************************/
+//filename /home/gcicera/packages/tpForrester/pkgs/tpForrester/src/lol.cpp
+///home/gcicera/packages/tpForrester/pkgs/tpForrester/src/seq.cpp
+//std::transform(filename.begin(), filename.end(),
+	//	       filename.begin(), tolower);
+std::string newTab = filename;
+          //  try {
+                std::string pluginname, packagename, conf;
+                utils::Template tpl;
+std::cout << "open" << std::endl;
+                tpl.open(newTab);
+std::cout << "tag" << std::endl;
+                tpl.tag(pluginname, packagename, conf);
+                ModelingPluginPtr plugin =
+                    mGVLE->pluginFactory().getModelingPlugin(packagename,
+                                      pluginname,
+                                      mGVLE->currentPackage().name());
+std::cout << "plugin" << std::endl;
+                if (plugin->modify(*mAtomicModel, dyn, cond,
+                                   obs, conf, tpl.buffer())) {
+std::cout << "plugin source" << std::endl;
+                    const std::string& buffer = plugin->source();
+                    std::string filename = mGVLE->getPackageSrcFile(dyn.library() +
+                        ".cpp");
+std::cout << "try into" << std::endl;
+                    try {
+                        std::ofstream f(filename.c_str());
+                        f.exceptions(std::ofstream::failbit |
+                                     std::ofstream::badbit);
+                        f << buffer;
+                    } catch(const std::ios_base::failure& e) {
+                        throw utils::ArgError(fmt(
+                                _("Cannot store buffer in file '%1%'")) %
+                            filename);
+                    }
+                    //mParent->refresh();
+                }
+          /*  } catch(...) {
+                //mParent->on_apply();
+                //mGVLE->getEditor()->openTab(newTab);
+            std::cout << "error in try" << std::endl;
+            }*/
+
+/************************************************************************/
+            }
+        }
+    }
+
+    /*
+    * Remove the selected class
+    */
 	void onRemoveClass()
 	{
-		std::cout << "Remove Class" << std::endl;
 		Glib::RefPtr < Gtk::TreeView::Selection > ref = mClasses->get_selection();
 		if (ref) {
 		    Gtk::TreeModel::iterator iter = ref->get_selected();
@@ -389,14 +617,14 @@ public:
 		        mClassesCopy.del(name);
 		        mClassesListStore->erase(iter);
 		        mDeletedClasses.insert(name);
-
-		        Gtk::TreeModel::Children children = mClassesListStore->children();
+                //Delete the .cpp too ?
+		        /*Gtk::TreeModel::Children children = mClassesListStore->children();
 		        mIter = children.begin();
 		        if (mIter != children.end()) {
 		            row = *mIter;
 		            Gtk::TreeModel::Path path = mClassesListStore->get_path(mIter);
 		            mClasses->set_cursor(path);
-		        }
+		        }*/
 		    }
 		}
 	}
@@ -430,6 +658,21 @@ public:
         Gtk::TreeModelColumn<Glib::ustring> mName;
 
     } mClassesColumns;
+
+    bool isValidName(std::string name)
+    {
+        size_t i = 0;
+        while (i < name.length()) {
+            if (!isalnum(name[i])) {
+                if (name[i] != '_') {
+                    return false;
+                }
+            }
+            i++;
+        }
+        return true;
+    }
+
     int mColumnName;
     std::list < sigc::connection > mList;
 	Gtk::TreeModel::Children::iterator  mIter;
@@ -441,12 +684,10 @@ public:
 	vpz::Classes                mClassesCopy;
 	std::set <std::string>            mDeletedClasses;
 	Gtk::Button* mButtonApply;
+    vpz::AtomicModel* mAtomicModel;
 
-    //Pour ouvrir le plugin
-    /*vpz::AtomicModel&                   mAtom;
-    vpz::Dynamic&                       mDynamic;
-    vpz::Conditions&                    mConditions;
-    vpz::Observables&                   mObservables;*/
+    Glib::ustring                       mOldName;
+    renameList                          mRenameList;
 };
 
 }

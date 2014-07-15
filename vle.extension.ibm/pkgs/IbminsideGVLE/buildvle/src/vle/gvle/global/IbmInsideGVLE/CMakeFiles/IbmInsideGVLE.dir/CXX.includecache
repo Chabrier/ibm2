@@ -41,6 +41,8 @@ gtkmm/comboboxtext.h
 -
 vle/utils/Spawn.hpp
 -
+vle/utils/Template.hpp
+-
 vle/vpz/Classes.hpp
 -
 vle/vpz/Class.hpp
@@ -54,6 +56,12 @@ iostream
 vle/vpz/AtomicModel.hpp
 -
 vle/gvle/ModelingPlugin.hpp
+-
+vle/vpz/Class.hpp
+-
+boost/lexical_cast.hpp
+-
+boost/algorithm/string/trim.hpp
 -
 
 /home/gcicera/local/include/vle-1.3/vle/DllDefines.hpp
@@ -480,6 +488,18 @@ vle/DllDefines.hpp
 vle/DllDefines.hpp
 -
 string
+-
+vector
+-
+
+/home/gcicera/local/include/vle-1.3/vle/utils/Template.hpp
+vle/DllDefines.hpp
+-
+iostream
+-
+string
+-
+map
 -
 vector
 -
