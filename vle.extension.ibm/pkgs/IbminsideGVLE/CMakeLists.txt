@@ -74,7 +74,7 @@ endif ()
 
 set(VleCheckPackage_DIR "${CMAKE_SOURCE_DIR}/cmake")
 FIND_PACKAGE(VleCheckPackage REQUIRED)
-SET(VLE_ABI_VERSION 1.1)
+SET(VLE_ABI_VERSION 1.3)
 
 ##
 ## Subdirectory
