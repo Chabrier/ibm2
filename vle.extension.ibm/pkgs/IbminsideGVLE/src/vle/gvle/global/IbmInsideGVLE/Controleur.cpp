@@ -84,6 +84,9 @@ private:
     const vd::InitEventList& mEvents;
 	std::string mScript;
     
+    /**
+     * @brief Parse the script
+     */
 	void parseScript() {
         std::vector<std::string> lines;
         boost::split(lines, mScript, boost::is_any_of("\n"));
@@ -97,19 +100,29 @@ private:
             {
                 try {
                     int nb_clone = readNumber(words[1]);
-                    //Vérifier si words[2] est bien une classe existante, à faire
                     addInstruction(nb_clone, words[2]);
                 } catch(boost::bad_lexical_cast const&) {
                     throw utils::ArgError("Error: input string was not valid");
+                } catch(utils::DevsGraphError) {
+                    throw utils::ArgError("The model doesn't exist");
                 } catch(const char* Message) {
 		            throw utils::ArgError(Message);
 	            }
-            } else {
+            } else if (words[0] == "DEL") {
+                delInstruction(words);
+            } else if (words[0] != ""){
                 throw utils::ArgError("Directive not found");
             }
         }
     }
     
+    /**
+     * @brief Convert nb to int or find the number associated to the variable
+     *
+     * @param std::string nb
+     *
+     * @return int 
+     */
     int readNumber(std::string nb) {
         int nb_clone;
         if (nb.substr(0,1) == "$") {
@@ -125,23 +138,51 @@ private:
         return nb_clone;
     }
     
+    /**
+     * @brief Create nb_clone modelwith the className Class
+     * 
+     * @param int nb_clone
+     * @param std::string className
+     */
     void addInstruction(int nb_clone, std::string className) {
         for (int i=0; i<nb_clone; i++){
-            std::string modelName = className + "_";
-			std::stringstream ss;
-			ss << i;
-			modelName = modelName + ss.str();
+            std::string modelName = findModelName(className);
 			const vpz::BaseModel* newModel = createModelFromClass(className, modelName);
 			connectionModelToExec(modelName, newModel);
-			//FAIRE LA CONNECTION SORTIE DE L'EXEC AUX PORTS PERTURB
 			connectionExecToModel(modelName);
 		}
     }
     
+    /**
+     * @brief Find a name starting with className_ and a number doesn't used
+     *
+     * @param std::string className
+     *
+     * @return std::string
+     */
+    std::string findModelName(std::string className) {
+        int i=0;
+        std::string modelName = className + "_";
+        std::string name = ""; 
+        do {
+		    std::stringstream ss;
+		    ss << i;
+		    name = modelName + ss.str();
+		    i++;
+		} while(coupledmodel().exist(name));
+		return name;
+    }
+    
+    /**
+     * @brief Connect the model to the executive
+     *
+     * @param std::string modelName
+     * @param const vpz::BaseModel* model
+     */
     void connectionModelToExec(std::string modelName, const vpz::BaseModel* model) {
         //std::map< std::string, ModelPortList > vle::vpz::ConnectionList
         std::map<std::string, vpz::ModelPortList> portList = model->getOutputPortList();
-        for(std::map<std::string, vpz::ModelPortList>::iterator it=portList.begin(); it!=portList.end(); ++it){
+        for (std::map<std::string, vpz::ModelPortList>::iterator it=portList.begin(); it!=portList.end(); ++it){
             std::string outputPortName = it->first;
             std::string inputPort = modelName + "_" + outputPortName;
             addInputPort(getModelName(), inputPort);
@@ -149,10 +190,61 @@ private:
         }
     }
     
+    /**
+     * @brief Connect the executive with the model
+     *
+     * @param std::string the model name
+     */
     void connectionExecToModel(std::string modelName) {
         std::string outputPortName = modelName + "_toPerturb";
         addOutputPort(getModelName(), outputPortName);
         addConnection(getModelName(), outputPortName, modelName, "perturb");
+    }
+    
+    /**
+     * @brief Delete models
+     *
+     * @param std::vector<std::string> list of the model name to remove
+     */
+    void delInstruction(std::vector<std::string> words) {
+        for (unsigned int i=1; i<words.size(); i++) {
+            try {
+                removeInputPortExec(words[i]);
+                removeOutputPortExec(words[i]);
+                delModel(words[i]);
+            } catch (utils::DevsGraphError) {
+                throw utils::ArgError("Model to remove not found");
+            }
+        }
+    }
+    
+    /**
+     * @brief Remove the input port of the executive associated to the model
+     *
+     * @param std::string model name
+     */
+    void removeInputPortExec(std::string modelName) {
+        std::vector<std::string> toRemove;
+        std::map<std::string, vpz::ModelPortList> portList = getModel().getInputPortList();
+        for (std::map<std::string, vpz::ModelPortList>::iterator it=portList.begin(); it!=portList.end(); ++it){
+            std::string temp = it->first.substr(0, modelName.size());
+            if (temp == modelName) {
+                toRemove.push_back(it->first);
+            }
+        }
+        for (unsigned int i=0; i<toRemove.size(); i++) {
+            removeInputPort(getModelName(), toRemove[i]);
+        }
+        
+    }
+    
+    /**
+     * @brief Remove the output port of the executive associated to pertub port of modelName
+     *
+     * @param std::string
+     */
+    void removeOutputPortExec(std::string modelName) {
+        removeOutputPort(getModelName(), modelName + "_toPerturb");
     }
 };
 
