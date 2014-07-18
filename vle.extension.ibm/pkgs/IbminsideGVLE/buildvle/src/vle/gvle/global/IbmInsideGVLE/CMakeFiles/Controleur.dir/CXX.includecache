@@ -17,6 +17,14 @@ sstream
 -
 iostream
 -
+fstream
+-
+boost/algorithm/string.hpp
+-
+boost/lexical_cast.hpp
+-
+vle/vpz/ModelPortList.hpp
+-
 
 /home/gcicera/local/include/vle-1.3/vle/DllDefines.hpp
 

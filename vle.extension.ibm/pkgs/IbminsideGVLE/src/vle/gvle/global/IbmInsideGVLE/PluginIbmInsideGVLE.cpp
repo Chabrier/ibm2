@@ -512,16 +512,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
 
         Gtk::TreeIter iter = mClassesListStore->append();
         if (iter) {
-
-            std::string modelName = "newClasses";
-            int copyNumber = 1;
-            std::string suffixe;
-            while (mClassesCopy.exist(modelName)) {
-                suffixe = "_" + boost::lexical_cast < std::string >(copyNumber);
-                modelName = "newClasses" + suffixe;
-
-                copyNumber++;
-            };
+            std::string modelName = generateClassName("newClasses");
 
             Gtk::ListStore::Row row = *iter;
             row[mClassesColumns.mName] = modelName;
@@ -529,6 +520,19 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
             isMakingClass = true;
             mClasses->set_cursor(mClassesListStore->get_path(iter),*nameCol,true);
         }
+    }
+    
+    std::string generateClassName(std::string modelName) {
+        std::string modelNameOrigin = modelName;
+        int copyNumber = 1;
+        std::string suffixe;
+        while (mClassesCopy.exist(modelName) || !isValidName(modelName) || modelName.length() == 0) {
+            suffixe = "_" + boost::lexical_cast < std::string >(copyNumber);
+            modelName = modelNameOrigin + suffixe;
+
+            copyNumber++;
+        };
+        return modelName;
     }
 
     /**
@@ -538,6 +542,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
      */
     void onAddClasses(std::string mName)
     {
+        mName = generateClassName(mName);
         const std::string pluginname = "vle.forrester/Forrester";
         ModelingPluginPtr plugin = mGVLE->pluginFactory().getModelingPlugin(pluginname, mGVLE->currentPackage().name());
         vpz::Conditions& cond = mGVLE->getModeling()->conditions();

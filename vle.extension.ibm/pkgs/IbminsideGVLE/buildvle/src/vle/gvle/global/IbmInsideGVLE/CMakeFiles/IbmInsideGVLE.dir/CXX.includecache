@@ -29,6 +29,8 @@ gtkmm/button.h
 -
 gtkmm/action.h
 -
+gtkmm/textbuffer.h
+-
 vle/utils/Template.hpp
 -
 vle/vpz/Classes.hpp
@@ -46,8 +48,6 @@ iostream
 boost/lexical_cast.hpp
 -
 boost/algorithm/string/trim.hpp
--
-gtkmm/textbuffer.h
 -
 
 /home/gcicera/local/include/vle-1.3/vle/DllDefines.hpp

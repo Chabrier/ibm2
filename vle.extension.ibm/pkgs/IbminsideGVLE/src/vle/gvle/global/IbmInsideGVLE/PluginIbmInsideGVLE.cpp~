@@ -31,15 +31,12 @@
 #include <vle/gvle/Message.hpp>
 #include <vle/gvle/Editor.hpp>
 #include <vle/gvle/Modeling.hpp>
-//#include <vle/gvle/ModelingPlugin.hpp>
 #include <vle/utils/Package.hpp>
-
 #include <gtkmm/actiongroup.h>
-
 #include <gtkmm/uimanager.h>
 #include <gtkmm/button.h>
 #include <gtkmm/action.h>
-
+#include <gtkmm/textbuffer.h>
 #include <vle/utils/Template.hpp>
 #include <vle/vpz/Classes.hpp>
 #include <vle/vpz/Class.hpp>
@@ -47,13 +44,9 @@
 #include <vle/vpz/AtomicModel.hpp>
 #include <fstream>
 #include <iostream>
-
-
-
-
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <gtkmm/textbuffer.h>
+
 
 namespace vle {
 namespace gvle {
@@ -520,7 +513,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         Gtk::TreeIter iter = mClassesListStore->append();
         if (iter) {
 
-            std::string modelName = "newClasses";
+            /*std::string modelName = "newClasses";
             int copyNumber = 1;
             std::string suffixe;
             while (mClassesCopy.exist(modelName)) {
@@ -528,7 +521,8 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
                 modelName = "newClasses" + suffixe;
 
                 copyNumber++;
-            };
+            };*/
+            std::string modelName = generateClassName("newClasses");
 
             Gtk::ListStore::Row row = *iter;
             row[mClassesColumns.mName] = modelName;
@@ -536,6 +530,19 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
             isMakingClass = true;
             mClasses->set_cursor(mClassesListStore->get_path(iter),*nameCol,true);
         }
+    }
+    
+    std::string generateClassName(std::string modelName) {
+        std::string modelNameOrigin = modelName;
+        int copyNumber = 1;
+        std::string suffixe;
+        while (mClassesCopy.exist(modelName) || !isValidName(modelName) || modelName.length() == 0) {
+            suffixe = "_" + boost::lexical_cast < std::string >(copyNumber);
+            modelName = modelNameOrigin + suffixe;
+
+            copyNumber++;
+        };
+        return modelName;
     }
 
     /**
@@ -545,6 +552,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
      */
     void onAddClasses(std::string mName)
     {
+        mName = generateClassName(mName);
         const std::string pluginname = "vle.forrester/Forrester";
         ModelingPluginPtr plugin = mGVLE->pluginFactory().getModelingPlugin(pluginname, mGVLE->currentPackage().name());
         vpz::Conditions& cond = mGVLE->getModeling()->conditions();
