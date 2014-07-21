@@ -47,7 +47,7 @@ public:
 
     virtual vd::Time init(const vd::Time& /* time */)
     {
-        return 0.0;
+        return vd::infinity;
     }
     
     /*virtual void internalTransition(const devs::Time& time) const
@@ -57,11 +57,11 @@ public:
         dump(file, "dumpHahaha");
     }*/
 
-
-    //void externalTransition(const vd::ExternalEventList& events,
-      //                      const vd::Time& /* time */)
-    //{
-    //}
+    void externalTransition(const vd::ExternalEventList& events,
+                            const vd::Time& /* time */)
+    {
+        updateData(events);
+    }
 
     virtual vd::Time timeAdvance() const
     {
@@ -83,6 +83,7 @@ public:
 private:
     const vd::InitEventList& mEvents;
 	std::string mScript;
+	std::map <std::string, std::map <std::string, vle::value::Value*> > mData;
     
     /**
      * @brief Parse the script
@@ -114,6 +115,7 @@ private:
                 throw utils::ArgError("Directive not found");
             }
         }
+        showData();
     }
     
     /**
@@ -245,6 +247,39 @@ private:
      */
     void removeOutputPortExec(std::string modelName) {
         removeOutputPort(getModelName(), modelName + "_toPerturb");
+    }
+    
+    void putInStructure(std::string modelName, std::string variable, vle::value::Value* value) {
+        if (mData.count(modelName) == 0){
+            std::map <std::string, vle::value::Value*> secondMap;
+            secondMap.insert(std::pair<std::string,vle::value::Value*>(variable, value));
+            mData.insert(std::pair<std::string,std::map <std::string, vle::value::Value*> >(modelName, secondMap));
+        } else {
+            std::map <std::string, vle::value::Value*>& temp = mData.find(modelName)->second;
+            if (!temp.insert(std::pair<std::string,vle::value::Value*>(variable, value)).second)
+                temp[variable] = value;
+        }
+    }
+    
+    void showData() {
+        for (std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it=mData.begin(); it!=mData.end(); ++it) {
+            for (std::map <std::string, vle::value::Value*>::iterator it2=it->second.begin(); it2!=it->second.end(); ++it2) {
+                std::cout << "clé " << it->first << " variable " << it2->first << " : " << *(it2->second) << std::endl;
+            }
+        }
+    }
+    
+    std::string getModelNameFromPort(std::string s) {
+        return s.substr(0, s.find("_") + 2);
+    }
+    
+    void updateData(const vd::ExternalEventList& events) {
+        for (unsigned int i=0; i<events.size(); i++) {
+            std::string s = events[i]->getPortName();
+            std::string variable = events[i]->getAttributes().get("name")->toString().value();
+            putInStructure(getModelNameFromPort(s), variable, events[i]->getAttributes().get("value"));
+        }
+        showData();
     }
 };
 
