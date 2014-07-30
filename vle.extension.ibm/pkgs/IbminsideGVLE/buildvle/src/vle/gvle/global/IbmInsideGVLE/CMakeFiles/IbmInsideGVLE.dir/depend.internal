@@ -817,13 +817,17 @@ src/vle/gvle/global/IbmInsideGVLE/CMakeFiles/IbmInsideGVLE.dir/PluginIbmInsideGV
  /usr/include/gtkmm-3.0/gtkmm/notebook.h
  /usr/include/gtkmm-3.0/gtkmm/object.h
  /usr/include/gtkmm-3.0/gtkmm/orientable.h
+ /usr/include/gtkmm-3.0/gtkmm/radioaction.h
+ /usr/include/gtkmm-3.0/gtkmm/radiobuttongroup.h
  /usr/include/gtkmm-3.0/gtkmm/requisition.h
  /usr/include/gtkmm-3.0/gtkmm/scrollable.h
  /usr/include/gtkmm-3.0/gtkmm/scrolledwindow.h
  /usr/include/gtkmm-3.0/gtkmm/selectiondata.h
  /usr/include/gtkmm-3.0/gtkmm/sizegroup.h
  /usr/include/gtkmm-3.0/gtkmm/statusbar.h
+ /usr/include/gtkmm-3.0/gtkmm/stock.h
  /usr/include/gtkmm-3.0/gtkmm/stockid.h
+ /usr/include/gtkmm-3.0/gtkmm/stockitem.h
  /usr/include/gtkmm-3.0/gtkmm/stylecontext.h
  /usr/include/gtkmm-3.0/gtkmm/styleprovider.h
  /usr/include/gtkmm-3.0/gtkmm/targetentry.h
@@ -836,6 +840,7 @@ src/vle/gvle/global/IbmInsideGVLE/CMakeFiles/IbmInsideGVLE.dir/PluginIbmInsideGV
  /usr/include/gtkmm-3.0/gtkmm/texttag.h
  /usr/include/gtkmm-3.0/gtkmm/texttagtable.h
  /usr/include/gtkmm-3.0/gtkmm/textview.h
+ /usr/include/gtkmm-3.0/gtkmm/toggleaction.h
  /usr/include/gtkmm-3.0/gtkmm/toggletoolbutton.h
  /usr/include/gtkmm-3.0/gtkmm/toolbar.h
  /usr/include/gtkmm-3.0/gtkmm/toolbutton.h

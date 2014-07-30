@@ -46,6 +46,9 @@
 #include <iostream>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <gtkmm/radioaction.h>
+#include <gtkmm/stock.h>
+#include <gtkmm/tooltip.h>
 
 
 namespace vle {
@@ -218,6 +221,8 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
      */
     void onCancel()
     {
+        mDeletedClasses->clear();
+        mClassesCopy.clear();
         mWindow->hide();
     }
 
@@ -380,7 +385,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         nameCol->set_clickable(true);
         nameCol->set_resizable(true);
 
-        Gtk::CellRendererText* mCellRenderer = dynamic_cast<Gtk::CellRendererText*>(
+        mCellRenderer = dynamic_cast<Gtk::CellRendererText*>(
             mClasses->get_column_cell_renderer(mColumnName - 1));
 
         mCellRenderer->property_editable() = true;
@@ -438,6 +443,8 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
      */
     void fillClasses()
     {
+        Gtk::RadioAction::Group toolsGroup;
+        
         std::map<std::string, vpz::Class> listClass = mClassesCopy.list();
         for (std::map<std::string, vpz::Class>::iterator it=listClass.begin() ; it!=listClass.end() ; ++it)
         {
@@ -445,11 +452,25 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
             if (iter)
             {
                 Gtk::ListStore::Row row = *iter;
-                row[mClassesColumns.mName] = it->first;
+                row[mClassesColumns.mName] = it->first.c_str();
+                /*m_refActionGroup->add(
+                    Gtk::RadioAction::create(toolsGroup, it->first.c_str(),
+                                             _(it->first.c_str()), _("Lalaliiii")));*/
+                //mClasses->set_tooltip_cell(&tooltip, 0, 0, mCellRenderer); 
+                 //Gtk::Widget:set_has_tooltip();	
             }
         }
         mIter = mClassesListStore->children().end();
+        
+        
+        //m_refUIManager->insert_action_group(m_refActionGroup);
+        //m_refUIManager->add_ui_from_file("menuBarreOutils.ui");
     }
+    
+    void lol () {
+        std::cout << ":P" << std::endl;
+    }
+    
 
     /**
      * @brief Update the class list
@@ -512,16 +533,6 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
 
         Gtk::TreeIter iter = mClassesListStore->append();
         if (iter) {
-
-            /*std::string modelName = "newClasses";
-            int copyNumber = 1;
-            std::string suffixe;
-            while (mClassesCopy.exist(modelName)) {
-                suffixe = "_" + boost::lexical_cast < std::string >(copyNumber);
-                modelName = "newClasses" + suffixe;
-
-                copyNumber++;
-            };*/
             std::string modelName = generateClassName("newClasses");
 
             Gtk::ListStore::Row row = *iter;
@@ -723,6 +734,8 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     Gtk::TextView*                              mTextViewScript;
     Gtk::Menu*                                  mMenu;
     Gtk::Button*                                mButtonApply;
+    Gtk::Tooltip*                               tooltip; 
+    Gtk::CellRendererText*                      mCellRenderer;
 
     Glib::RefPtr<Gtk::ListStore>                mClassesListStore;
     int                                         mColumnName;

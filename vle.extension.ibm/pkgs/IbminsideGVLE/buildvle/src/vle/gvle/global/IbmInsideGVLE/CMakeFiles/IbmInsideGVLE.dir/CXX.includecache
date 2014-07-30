@@ -49,6 +49,12 @@ boost/lexical_cast.hpp
 -
 boost/algorithm/string/trim.hpp
 -
+gtkmm/radioaction.h
+-
+gtkmm/stock.h
+-
+gtkmm/tooltip.h
+-
 
 /home/gcicera/local/include/vle-1.3/vle/DllDefines.hpp
 
@@ -7102,6 +7108,20 @@ glibmm/interface.h
 gtkmm/enums.h
 -
 
+/usr/include/gtkmm-3.0/gtkmm/radioaction.h
+glibmm/ustring.h
+-
+sigc++/sigc++.h
+-
+gtkmm/toggleaction.h
+-
+gtkmm/radiobuttongroup.h
+-
+
+/usr/include/gtkmm-3.0/gtkmm/radiobuttongroup.h
+glibmm/object.h
+-
+
 /usr/include/gtkmm-3.0/gtkmm/requisition.h
 glibmm/ustring.h
 -
@@ -7162,10 +7182,30 @@ sigc++/sigc++.h
 gtkmm/box.h
 -
 
+/usr/include/gtkmm-3.0/gtkmm/stock.h
+gtkmm/stockitem.h
+-
+gtkmm/stockid.h
+-
+gtkmm/iconset.h
+-
+gtkmm/image.h
+-
+
 /usr/include/gtkmm-3.0/gtkmm/stockid.h
 glibmm/ustring.h
 -
 glibmm/containerhandle_shared.h
+-
+
+/usr/include/gtkmm-3.0/gtkmm/stockitem.h
+glibmm/ustring.h
+-
+sigc++/sigc++.h
+-
+gdkmm/types.h
+-
+gtkmm/stockid.h
 -
 
 /usr/include/gtkmm-3.0/gtkmm/stylecontext.h
@@ -7350,6 +7390,14 @@ gtkmm/textbuffer.h
 gtkmm/textmark.h
 -
 gtkmm/menu.h
+-
+
+/usr/include/gtkmm-3.0/gtkmm/toggleaction.h
+glibmm/ustring.h
+-
+sigc++/sigc++.h
+-
+gtkmm/action.h
 -
 
 /usr/include/gtkmm-3.0/gtkmm/toggletoolbutton.h
