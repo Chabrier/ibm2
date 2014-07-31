@@ -264,7 +264,6 @@ private:
         for (unsigned int i=0; i<variablesEqualValue.size(); i++) {
             std::vector<std::string> variablesAndValue;
             boost::split(variablesAndValue, variablesEqualValue[i], boost::is_any_of("="));
-            std::cout << "pk??? " << variablesAndValue.size() << " " << variablesAndValue[0] << std::endl;
             boost::replace_all(variablesAndValue[0], " ", "");
             boost::replace_all(variablesAndValue[1], " ", "");
             nameAndValue.insert(std::pair<std::string, std::string> (variablesAndValue[0], variablesAndValue[1]));
@@ -375,11 +374,6 @@ private:
     }
     
     void putInStructure(std::string modelName, std::string variable, vle::value::Value* value) {
-    /*std::cout << "in struct " << value->toDouble().value() << std::endl;
-    std::map <std::string, vle::value::Value*> secondMap;
-    std::pair<std::string,std::map <iterator, bool> = mData.insert(std::pair<std::string,std::map <std::string, vle::value::Value*> >(modelName, secondMap));*/
-//    if (!bool) {
-//    }w
         std::map<std::string,std::map <std::string, vle::value::Value*> >::iterator it = mData.find(modelName);
         if (it == mData.end()){
             std::map <std::string, vle::value::Value*> secondMap;

@@ -357,8 +357,23 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         {
             std::cout << "Class name " << it->second.name() << std::endl;
             std::cout << "Model name " << it->second.model()->getName() << std::endl;
+            
         }
     }
+    
+    std::string showParameter(std::string className) {
+        std::string s = "";
+        vle::vpz::Conditions& cl = mGVLE->getModeling()->experiment().conditions();
+	    vle::vpz::Condition& c = cl.get("cond_DTE_" + className);
+	    std::map< std::string, value::Set* > listParameters = c.conditionvalues();
+	    for (std::map< std::string, value::Set* >::iterator it = listParameters.begin(); it!=listParameters.end(); ++it) {
+	        if (it->first != "variables") {
+	            s = s + it->first + "\n";
+	        }
+	    }
+	    return s.substr(0, s.length()-1);
+    }
+    
 
     /**
      * @brief Print the model list of the vpz selected
@@ -381,21 +396,39 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         mColumnName = mClasses->append_column_editable(_("Name"),
                                                         mClassesColumns.mName);
         Gtk::TreeViewColumn* nameCol = mClasses->get_column(mColumnName - 1);
-
         nameCol->set_clickable(true);
         nameCol->set_resizable(true);
-
+        
         mCellRenderer = dynamic_cast<Gtk::CellRendererText*>(
             mClasses->get_column_cell_renderer(mColumnName - 1));
-
+            
         mCellRenderer->property_editable() = true;
-
-        mList.push_back(mCellRenderer->signal_editing_started().connect(
-                            sigc::mem_fun(*this, &PluginIbmInsideGVLE::onEditionStarted)));
+        /*mList.push_back(mCellRendererInfo->signal_editing_started().connect(
+                            sigc::mem_fun(*this, &PluginIbmInsideGVLE::onEditionStarted)));*/
         mList.push_back(mCellRenderer->signal_edited().connect(
                             sigc::mem_fun(*this, &PluginIbmInsideGVLE::onEdition)));
+
+        mClasses->set_has_tooltip();
+        mClasses->signal_query_tooltip().connect(
+            sigc::mem_fun(*this, &PluginIbmInsideGVLE::onQueryTooltip));
     }
 
+    bool onQueryTooltip(int wx,int wy, bool keyboard_tooltip,
+        const Glib::RefPtr<Gtk::Tooltip>& tooltip)
+    {
+        Gtk::TreeModel::iterator iter;
+        Glib::ustring card;
+
+        if (mClasses->get_tooltip_context_iter(wx, wy, keyboard_tooltip, iter)) {
+            Glib::ustring cond = (*iter).get_value(mClassesColumns.mInfo);
+            card = mGVLE->getModeling()->getInfoCard(cond);
+            tooltip->set_markup(card);
+            mClasses->set_tooltip_row(tooltip, Gtk::TreePath(iter));
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     void onEditionStarted(Gtk::CellEditable* /*celleditable*/,
     const Glib::ustring& path)
@@ -453,25 +486,12 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
             {
                 Gtk::ListStore::Row row = *iter;
                 row[mClassesColumns.mName] = it->first.c_str();
-                /*m_refActionGroup->add(
-                    Gtk::RadioAction::create(toolsGroup, it->first.c_str(),
-                                             _(it->first.c_str()), _("Lalaliiii")));*/
-                //mClasses->set_tooltip_cell(&tooltip, 0, 0, mCellRenderer); 
-                 //Gtk::Widget:set_has_tooltip();	
+                row[mClassesColumns.mInfo] = showParameter(it->first.c_str());
             }
         }
         mIter = mClassesListStore->children().end();
-        
-        
-        //m_refUIManager->insert_action_group(m_refActionGroup);
-        //m_refUIManager->add_ui_from_file("menuBarreOutils.ui");
     }
     
-    void lol () {
-        std::cout << ":P" << std::endl;
-    }
-    
-
     /**
      * @brief Update the class list
      */
@@ -569,7 +589,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         vpz::Conditions& cond = mGVLE->getModeling()->conditions();
         vpz::Dynamic dyn(mName);
         vpz::Observables& obs = mGVLE->getModeling()->observables();
-        mAtomicModel = new vpz::AtomicModel(mName, NULL);//mGVLE->getModeling()->getTopModel()
+        mAtomicModel = new vpz::AtomicModel(mName, NULL);
 
         const std::string namespace_ = "IbminsideGVLE";
         if (plugin->create(*mAtomicModel, dyn, cond, obs, mName, namespace_))
@@ -595,61 +615,70 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
             mName = "";
         }
     }
+    
+    std::string getClassSelected() {
+        std::string name = "";
+        Glib::RefPtr < Gtk::TreeView::Selection > ref = mClasses->get_selection();
+        if (ref) {
+            Gtk::TreeModel::iterator iter = ref->get_selected();
+            if (iter) {
+                Gtk::TreeModel::Row row = *iter;
+                name = row.get_value(mClassesColumns.mName);
+            }
+        }
+        
+        return name;
+    }
 
     /**
      * @brief Modify the selected class
      */
     void onModifyClasses()
     {
-        Glib::RefPtr < Gtk::TreeView::Selection > ref = mClasses->get_selection();
-        if (ref) {
-            Gtk::TreeModel::iterator iter = ref->get_selected();
-            if (iter) {
-                Gtk::TreeModel::Row row = *iter;
-                std::string name(row.get_value(mClassesColumns.mName));
+        std::string name = getClassSelected();
+        if (name != "") {
 
-                vpz::Dynamic dyn = mGVLE->getModeling()->vpz().project().dynamics().get(name);
-                vpz::Conditions& cond = mGVLE->getModeling()->experiment().conditions();
-                vpz::Observables& obs = mGVLE->getModeling()->observables();
-                vpz::Class& my_class = mClassesCopy.get(name);
-                mAtomicModel = my_class.model()->toAtomic();
+            vpz::Dynamic dyn = mGVLE->getModeling()->vpz().project().dynamics().get(name);
+            vpz::Conditions& cond = mGVLE->getModeling()->experiment().conditions();
+            vpz::Observables& obs = mGVLE->getModeling()->observables();
+            vpz::Class& my_class = mClassesCopy.get(name);
+            mAtomicModel = my_class.model()->toAtomic();
 
-                std::string filename = mGVLE->getPackageSrcFile(name + ".cpp");
+            std::string filename = mGVLE->getPackageSrcFile(name + ".cpp");
 
-                std::string newTab = filename;
-                try {
-                    std::string pluginname, packagename, conf;
-                    utils::Template tpl;
-                    tpl.open(newTab);
-                    tpl.tag(pluginname, packagename, conf);
-                    ModelingPluginPtr plugin =
-                        mGVLE->pluginFactory().getModelingPlugin(packagename,
-                                          pluginname,
-                                          mGVLE->currentPackage().name());
-                    if (plugin->modify(*mAtomicModel, dyn, cond,
-                                       obs, conf, tpl.buffer())) {
-                        const std::string& buffer = plugin->source();
-                        std::string filename = mGVLE->getPackageSrcFile(dyn.library() +
-                            ".cpp");
-                        try {
-                            std::ofstream f(filename.c_str());
-                            f.exceptions(std::ofstream::failbit |
-                                         std::ofstream::badbit);
-                            f << buffer;
-                        } catch(const std::ios_base::failure& e) {
-                            throw utils::ArgError(fmt(
-                                    _("Cannot store buffer in file '%1%'")) %
-                                filename);
-                        }
-                        //mParent->refresh();
+            std::string newTab = filename;
+            try {
+                std::string pluginname, packagename, conf;
+                utils::Template tpl;
+                tpl.open(newTab);
+                tpl.tag(pluginname, packagename, conf);
+                ModelingPluginPtr plugin =
+                    mGVLE->pluginFactory().getModelingPlugin(packagename,
+                                      pluginname,
+                                      mGVLE->currentPackage().name());
+                if (plugin->modify(*mAtomicModel, dyn, cond,
+                                   obs, conf, tpl.buffer())) {
+                    const std::string& buffer = plugin->source();
+                    std::string filename = mGVLE->getPackageSrcFile(dyn.library() +
+                        ".cpp");
+                    try {
+                        std::ofstream f(filename.c_str());
+                        f.exceptions(std::ofstream::failbit |
+                                     std::ofstream::badbit);
+                        f << buffer;
+                    } catch(const std::ios_base::failure& e) {
+                        throw utils::ArgError(fmt(
+                                _("Cannot store buffer in file '%1%'")) %
+                            filename);
                     }
-                } catch(...) {
-                    //mParent->on_apply();
-                    //mGVLE->getEditor()->openTab(newTab);
-                std::cout << "error in try" << std::endl;
+                    //mParent->refresh();
                 }
-
+            } catch(...) {
+                //mParent->on_apply();
+                //mGVLE->getEditor()->openTab(newTab);
+            std::cout << "error in try" << std::endl;
             }
+            refreshClassesList();
         }
     }
 
@@ -693,9 +722,11 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     struct ClassesModelColumns : public Gtk::TreeModel::ColumnRecord
     {
         ClassesModelColumns()
-        { add(mName); }
+        { add(mName); 
+          add(mInfo);}
 
         Gtk::TreeModelColumn<Glib::ustring> mName;
+        Gtk::TreeModelColumn<Glib::ustring> mInfo;
 
     } mClassesColumns;
 
@@ -734,11 +765,11 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     Gtk::TextView*                              mTextViewScript;
     Gtk::Menu*                                  mMenu;
     Gtk::Button*                                mButtonApply;
-    Gtk::Tooltip*                               tooltip; 
     Gtk::CellRendererText*                      mCellRenderer;
 
     Glib::RefPtr<Gtk::ListStore>                mClassesListStore;
     int                                         mColumnName;
+    int                                         mColumnInfo;
     std::list < sigc::connection >              mList;
     Gtk::TreeModel::Children::iterator          mIter;
 

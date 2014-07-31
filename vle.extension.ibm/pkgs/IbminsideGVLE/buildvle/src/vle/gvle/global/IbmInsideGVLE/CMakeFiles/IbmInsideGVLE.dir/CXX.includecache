@@ -243,6 +243,8 @@ gtkmm/uimanager.h
 -
 
 /home/gcicera/local/include/vle-1.3/vle/gvle/Modeling.hpp
+vle/gvle/DllDefines.hpp
+-
 vle/vpz/Vpz.hpp
 -
 vle/vpz/CoupledModel.hpp
