@@ -52,6 +52,11 @@ INCLUDE(CMakeDetermineCCompiler)
 FIND_PACKAGE(PkgConfig REQUIRED)
 
 ##
+## Find Lua libs
+##
+FIND_PACKAGE(Lua51 REQUIRED)
+
+##
 ## Check vle
 ##
 

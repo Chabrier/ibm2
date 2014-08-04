@@ -765,7 +765,6 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     Gtk::TextView*                              mTextViewScript;
     Gtk::Menu*                                  mMenu;
     Gtk::Button*                                mButtonApply;
-    Gtk::Tooltip*                               tooltip; 
     Gtk::CellRendererText*                      mCellRenderer;
 
     Glib::RefPtr<Gtk::ListStore>                mClassesListStore;

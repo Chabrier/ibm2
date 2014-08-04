@@ -1,5 +1,6 @@
 FILE(REMOVE_RECURSE
   "CMakeFiles/Controleur.dir/Controleur.cpp.o"
+  "CMakeFiles/Controleur.dir/ControleurProxy.cpp.o"
   "libControleur.pdb"
   "libControleur.so"
 )

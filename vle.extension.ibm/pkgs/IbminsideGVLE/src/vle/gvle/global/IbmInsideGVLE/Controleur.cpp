@@ -2,7 +2,8 @@
  * @file Controleur.cpp
  *
  */
-
+#include "ControleurProxy.hpp"
+#include "Controleur.hpp"
 #include <vle/devs/Executive.hpp>
 #include <vle/devs/ExecutiveDbg.hpp>
 #include <vle/vpz/Conditions.hpp>
@@ -31,27 +32,46 @@ namespace ibminsidegvle {
 *@@tagdynamic@@
 *@@tagdepends:@@endtagdepends
 */
-class Controleur : public vd::Executive
-{    
-public:
-    Controleur(const vd::ExecutiveInit& mdl,
+
+    Controleur::Controleur(const vd::ExecutiveInit& mdl,
                const vd::InitEventList& events)
     : vd::Executive(mdl, events), mEvents(events), mInternTransition(false), mValueStart(0)
     {
+        L = luaL_newstate();
+        luaL_openlibs(L);
+
+        Lunar<ControleurProxy>::Register(L);
+
+        mCP.setControleur(this);
+
+        lua_settop(L,0);
+
+        Lunar<ControleurProxy>::push(L, &mCP);
+        lua_setglobal(L, "cp");
+
+//Variables
+ /*       lua_pushnumber(L, 13.3);
+        std::string varName = "R1_C1";
+        lua_setglobal(L, varName.c_str());
+        showDataLua();*/
+///
+
         if (events.exist("Script"))
             mScript = events.getString("Script");
         else
             throw vle::utils::ModellingError("Text Script not found");
-        parseScript();
+        luaL_dostring(L, mScript.c_str());
+        
+        //parseScript();
         std::ofstream file("/home/gcicera/outputTestHahaha.vpz");
         dump(file, "dumpHahaha");
     }
 
-    virtual ~Controleur()
+    Controleur::~Controleur()
     {
     }
 
-    virtual vd::Time init(const vd::Time& t)
+    vd::Time Controleur::init(const vd::Time& t)
     {
         mValueC2 = 0;
         mValueC1 = 0;
@@ -64,7 +84,7 @@ public:
         return ta;
     }
     
-    virtual void internalTransition(const devs::Time& t)
+    void Controleur::internalTransition(const devs::Time& t)
     {
         std::cout << "internal transition " << t << std::endl;
         if (mInstructionsComing.size() > 0) {
@@ -85,7 +105,7 @@ public:
         dump(file, "dumpHahaha");
     }
 
-    void externalTransition(const vd::ExternalEventList& /*events*/,
+    void Controleur::externalTransition(const vd::ExternalEventList& events,
                             const vd::Time& t)
     {
         //std::cout << "external" << std::endl;
@@ -93,10 +113,10 @@ public:
             ta = mInstructionsComing.back().first - t;
         else ta = vd::infinity;
         //std::cout << "ext " << events[0]->getPortName() << " " << events.size() << std::endl;
-        //updateData(events);
+        updateData(events);
     }
 
-    virtual vd::Time timeAdvance() const
+    vd::Time Controleur::timeAdvance() const
     {
         //if(mInternTransition)
         //std::cout << "timeAdvance " << ta << std::endl;
@@ -104,7 +124,7 @@ public:
         //return std::numeric_limits<double>::epsilon();
     }
 
-    virtual void output(const vd::Time& /* time */,
+    void Controleur::output(const vd::Time& /* time */,
                         vd::ExternalEventList& /*output*/) const
     {/*
         vd::ExternalEvent* e1 = new vd::ExternalEvent(toEmptyName + "_toPerturb");
@@ -117,32 +137,55 @@ public:
         output.push_back(e2);*/
     }
 
-	//virtual vv::Value* observation(
-	//	const vd::ObservationEvent& event) const
-	//{
-	//		return new vv::Double(0);
-	//}
+    /**
+     * @brief Create nb_clone modelwith the className Class
+     * 
+     * @param int nb_clone
+     * @param std::string className
+     */
+    void Controleur::addInstruction(int nb_clone, std::string className) {
+        for (int i=0; i<nb_clone; i++){
+			addOneModel(className);
+		}
+    }
+    
+    std::map <std::string, vv::Value*> Controleur::modifyParameter(std::string className, std::map <std::string, vv::Value*> variableToModify) 
+    {
+        std::map <std::string, vv::Value*> variableModified;
+        vc::Conditions& cl = conditions();
+		vc::Condition& c = cl.get("cond_DTE_" + className);
+		for (std::map <std::string, vv::Value*>::iterator it = variableToModify.begin(); it != variableToModify.end(); ++it) {
+		    vle::value::Value* d = c.firstValue(it->first).clone();
+		    variableModified.insert(std::pair<std::string, vv::Value*>(it->first, d));
+		    c.setValueToPort(it->first, *(it->second));//c_str()
+		}
+		
+		return variableModified;
+    }
+    
+    void Controleur::addModelWith(int nb_clone, std::string className, std::map <std::string, vv::Value*> variableToModify) {
+        std::map <std::string, vv::Value*> variableModified = modifyParameter(className, variableToModify);
+        addInstruction(nb_clone, className);
+        modifyParameter(className, variableModified);
+    }
+    
+    void Controleur::delOneModel(std::string modelName) {
+        std::cout << "del " << modelName << std::endl;
+        delModel(modelName);
+        removeInputPortExec(modelName);
+        removeOutputPortExec(modelName);
+        std::cout << "DELETE " << modelName << std::endl;
+        mData.erase(modelName);
+    }
 
-
-private:
-    const vd::InitEventList& mEvents;
-	std::string mScript;
-	std::map <std::string, std::map <std::string, vle::value::Value*> > mData;
-	bool mInternTransition;
-	double mValueStart;
-	double mValueC1;
-	double mValueC2;
-	std::string toEmptyName;
-	std::string toFillName;
-	std::map <std::string, int> mNameNumber;
-	std::vector <std::pair<int, std::string> > mInstructionsComing;
-	//std::map <std::string, vle::value::Value*> mVariables;
-	double ta;
+    void Controleur::addVar(std::string varName, vle::value::Value* varValue) {
+        mVariables.insert(std::pair<std::string, vle::value::Value*>(varName, varValue));
+    }
     
     /**
      * @brief Parse the script
      */
-	void parseScript() {
+	void Controleur::parseScript() {
         std::vector<std::string> lines;
         boost::split(lines, mScript, boost::is_any_of("\n"));
         
@@ -153,7 +196,7 @@ private:
         showInstructionListWaiting();
     }
     
-    void parseOneLine(std::string line) {
+    void Controleur::parseOneLine(std::string line) {
         std::cout << "enum " << line << std::endl;
         std::vector<std::string> words;
         boost::split(words, line, boost::is_any_of(" "));
@@ -162,10 +205,12 @@ private:
         {
             try {
                 int nb_clone = readNumber(words[1]);
-                std::map <std::string, std::string> variableToModify;
-                if (boost::contains(line, "WITH"))
+                std::map <std::string, vv::Value*> variableToModify;
+                if (boost::contains(line, "WITH")) {
                     variableToModify = parseWITH(line);
-                addInstruction(nb_clone, words[2], variableToModify);
+                    modifyParameter(words[2], variableToModify);
+                 }
+                addInstruction(nb_clone, words[2]);
             } catch(const char* Message) {
 	            throw utils::ArgError(Message);
             }
@@ -175,12 +220,16 @@ private:
             std::string time = words[0];
             std::string instruction = line.substr(words[0].size() + 1);
             int time_dec = atoi(time.substr(1).c_str());
-            mInstructionsComing.push_back(std::pair<int, std::string> (time_dec, instruction));
-            CompareTime compTime;
-            std::sort(mInstructionsComing.begin(), mInstructionsComing.end(), compTime);
+            atRegister(time_dec, instruction);
         } else if (words[0] != ""){
             throw utils::ArgError(fmt("Directive `%1%' not found") % words[0]);
         }
+    }
+    
+    void Controleur::atRegister(double time, std::string instruction) {
+        mInstructionsComing.push_back(std::pair<int, std::string> (time, instruction));
+        CompareTime compTime;
+        std::sort(mInstructionsComing.begin(), mInstructionsComing.end(), compTime);
     }
     
     /**
@@ -190,7 +239,7 @@ private:
      *
      * @return int 
      */
-    int readNumber(std::string nb) {
+    int Controleur::readNumber(std::string nb) {
         int nb_clone;
         if (nb.substr(0,1) == "$") {
             std::string variableName = nb.substr(1);
@@ -206,20 +255,8 @@ private:
         return nb_clone;
     }
     
-    /**
-     * @brief Create nb_clone modelwith the className Class
-     * 
-     * @param int nb_clone
-     * @param std::string className
-     */
-    void addInstruction(int nb_clone, std::string className, std::map <std::string, std::string> variableToModify) {
-        for (int i=0; i<nb_clone; i++){
-			addOneModel(className, variableToModify);
-		}
-    }
-    
-    std::string addOneModel(std::string className, std::map <std::string, std::string> variableToModify) {
-        modifyParameter(className, variableToModify);
+    std::string Controleur::addOneModel(std::string className) {
+        //modifyParameter(className, variableToModify);
         std::string modelName = findModelName(className);
 		const vpz::BaseModel* newModel = createModelFromClass(className, modelName);
 		connectionModelToExec(modelName, newModel);
@@ -228,35 +265,8 @@ private:
 		return modelName;
     }
     
-    void modifyParameter(std::string className, std::map <std::string, std::string> variableToModify) 
-    {
-        vc::Conditions& cl = conditions();
-		vc::Condition& c = cl.get("cond_DTE_" + className);
-		vv::Value* valueToPut;
-		for (std::map <std::string, std::string>::iterator it = variableToModify.begin(); it != variableToModify.end(); ++it) {
-		    vv::Value::type typeValue = c.firstValue(it->first).getType();
-		    switch (typeValue) {
-		        case vv::Value::DOUBLE : {
-		            double d = boost::lexical_cast<double>(it->second.c_str());
-		            valueToPut = new vv::Double(d);
-		            std::cout << "doble " << it->first << " " << it->second << std::endl;
-		            break; }
-		        case vv::Value::INTEGER :{
-		            int i = boost::lexical_cast<int>(it->second.c_str());
-		            valueToPut = new vv::Integer(i);
-		            std::cout << "integer " << it->first << " " << it->second << std::endl;
-		            break;}
-		        default :{
-		            valueToPut = NULL;
-		            std::cout << "default switch" << std::endl;
-		            break;}
-		    }
-		    c.setValueToPort(it->first, *(valueToPut));
-		}
-    }
-    
-    std::map <std::string, std::string> parseWITH(std::string line) {
-        std::map <std::string, std::string> nameAndValue;
+    std::map <std::string, vv::Value*> Controleur::parseWITH(std::string line) {
+        std::map <std::string, vv::Value*> nameAndValue;
         boost::to_upper(line);
         std::string part = line.substr(line.find("WITH") + 5);
         std::vector<std::string> variablesEqualValue;
@@ -266,7 +276,7 @@ private:
             boost::split(variablesAndValue, variablesEqualValue[i], boost::is_any_of("="));
             boost::replace_all(variablesAndValue[0], " ", "");
             boost::replace_all(variablesAndValue[1], " ", "");
-            nameAndValue.insert(std::pair<std::string, std::string> (variablesAndValue[0], variablesAndValue[1]));
+            //nameAndValue.insert(std::pair<std::string, vv::Double> (variablesAndValue[0], variablesAndValue[1])); Changer le string en double
         }
         return nameAndValue;
     }
@@ -278,7 +288,7 @@ private:
      *
      * @return std::string
      */
-    std::string findModelName(std::string className) {
+    std::string Controleur::findModelName(std::string className) {
         int i = 0;
         std::string modelName = className + "_";
         std::map<std::string, int>::iterator it = mNameNumber.find(className);
@@ -302,7 +312,7 @@ private:
      * @param std::string modelName
      * @param const vpz::BaseModel* model
      */
-    void connectionModelToExec(std::string modelName, const vpz::BaseModel* model) {
+    void Controleur::connectionModelToExec(std::string modelName, const vpz::BaseModel* model) {
         //std::map< std::string, ModelPortList > vle::vpz::ConnectionList
         std::map<std::string, vpz::ModelPortList> portList = model->getOutputPortList();
         for (std::map<std::string, vpz::ModelPortList>::iterator it=portList.begin(); it!=portList.end(); ++it){
@@ -318,7 +328,7 @@ private:
      *
      * @param std::string the model name
      */
-    void connectionExecToModel(std::string modelName) {
+    void Controleur::connectionExecToModel(std::string modelName) {
         std::string outputPortName = modelName + "_toPerturb";
         addOutputPort(getModelName(), outputPortName);
         addConnection(getModelName(), outputPortName, modelName, "perturb");
@@ -329,27 +339,20 @@ private:
      *
      * @param std::vector<std::string> list of the model name to remove
      */
-    void delInstruction(std::vector<std::string> words) {
+    void Controleur::delInstruction(std::vector<std::string> words) {
         for (unsigned int i=1; i<words.size(); i++) {
             delOneModel(words[i]);
         }
     }
     
-    void delOneModel(std::string modelName) {
-        std::cout << "del " << modelName << std::endl;
-        delModel(modelName);
-        removeInputPortExec(modelName);
-        removeOutputPortExec(modelName);
-        std::cout << "DELETE " << modelName << std::endl;
-        mData.erase(modelName);
-    }
+    
     
     /**
      * @brief Remove the input port of the executive associated to the model
      *
      * @param std::string model name
      */
-    void removeInputPortExec(std::string modelName) {
+    void Controleur::removeInputPortExec(std::string modelName) {
         std::vector<std::string> toRemove;
         std::map<std::string, vpz::ModelPortList> portList = getModel().getInputPortList();
         for (std::map<std::string, vpz::ModelPortList>::iterator it=portList.begin(); it!=portList.end(); ++it){
@@ -369,16 +372,17 @@ private:
      *
      * @param std::string
      */
-    void removeOutputPortExec(std::string modelName) {
+    void Controleur::removeOutputPortExec(std::string modelName) {
         removeOutputPort(getModelName(), modelName + "_toPerturb");
     }
     
-    void putInStructure(std::string modelName, std::string variable, vle::value::Value* value) {
+    void Controleur::putInStructure(std::string modelName, std::string variable, vle::value::Value* value) {
         std::map<std::string,std::map <std::string, vle::value::Value*> >::iterator it = mData.find(modelName);
         if (it == mData.end()){
             std::map <std::string, vle::value::Value*> secondMap;
             secondMap.insert(std::pair<std::string,vle::value::Value*>(variable, value->clone()));
             mData.insert(std::pair<std::string,std::map <std::string, vle::value::Value*> >(modelName, secondMap));
+            
         } else {
             std::map <std::string, vle::value::Value*>& temp = mData.find(modelName)->second;
             if (!temp.insert(std::pair<std::string,vle::value::Value*>(variable, value->clone())).second) {
@@ -388,7 +392,7 @@ private:
         
     }
     
-    void showData() {
+    void Controleur::showData() {
         for (std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it=mData.begin(); it!=mData.end(); ++it) {
             for (std::map <std::string, vle::value::Value*>::iterator it2=it->second.begin(); it2!=it->second.end(); ++it2) {
                 std::cout << "clé " << it->first << " variable " << it2->first << " : " << *(it2->second) << std::endl;
@@ -396,32 +400,38 @@ private:
         }
     }
     
-    void showInstructionListWaiting() {
+    void Controleur::showDataLua() {
+        double d = 0;
+        lua_getglobal(L, "R1_C1");
+        d = (double)lua_tonumber(L, -1);
+        std::cout << "youhou !!! " << d << std::endl;
+    }
+    
+    void Controleur::showInstructionListWaiting() {
         for (unsigned int i = 0; i<mInstructionsComing.size(); i++) {
             std::cout << "Instruction waiting " << mInstructionsComing[i].first << " " << mInstructionsComing[i].second << std::endl;
         }
     }
     
-    std::string getModelNameFromPort(std::string s) {
+    std::string Controleur::getModelNameFromPort(std::string s) {
         unsigned i = s.find_last_of("_");
         return s.substr(0, i);
     }
     
-    void updateData(const vd::ExternalEventList& events) {
+    void Controleur::updateData(const vd::ExternalEventList& events) {
         for (unsigned int i=0; i<events.size(); i++) {
             std::string s = events[i]->getPortName();
             std::string variable = events[i]->getAttributes().get("name")->toString().value();
+            
+            
             putInStructure(getModelNameFromPort(s), variable, events[i]->getAttributes().get("value"));
         }
-        showData();
+        //showDataLua();
     }
     
-    struct CompareTime {
-       bool operator()( const std::pair<int, std::string> a, const std::pair<int, std::string>  b ) const {
-          return a.first > b.first;
-       }
-    };
-};
+    double Controleur::getData(std::string modelName, std::string varName) {
+        return mData.find(modelName)->second.find(varName)->second->toDouble().value();
+    }
 
 }}}} // namespace vle gvle global ibminsidegvle
 

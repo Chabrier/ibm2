@@ -5,6 +5,7 @@ SET(CMAKE_DEPENDS_LANGUAGES
 # The set of files for implicit dependencies of each language:
 SET(CMAKE_DEPENDS_CHECK_CXX
   "/home/gcicera/ibm/vle.extension.ibm/pkgs/IbminsideGVLE/src/vle/gvle/global/IbmInsideGVLE/Controleur.cpp" "/home/gcicera/ibm/vle.extension.ibm/pkgs/IbminsideGVLE/buildvle/src/vle/gvle/global/IbmInsideGVLE/CMakeFiles/Controleur.dir/Controleur.cpp.o"
+  "/home/gcicera/ibm/vle.extension.ibm/pkgs/IbminsideGVLE/src/vle/gvle/global/IbmInsideGVLE/ControleurProxy.cpp" "/home/gcicera/ibm/vle.extension.ibm/pkgs/IbminsideGVLE/buildvle/src/vle/gvle/global/IbmInsideGVLE/CMakeFiles/Controleur.dir/ControleurProxy.cpp.o"
   )
 SET(CMAKE_CXX_COMPILER_ID "GNU")
 
@@ -46,6 +47,7 @@ SET(CMAKE_C_TARGET_INCLUDE_PATH
   "/usr/include/at-spi2-atk/2.0"
   "/usr/include/gio-unix-2.0"
   "/usr/include/harfbuzz"
+  "/usr/include/lua5.1"
   )
 SET(CMAKE_CXX_TARGET_INCLUDE_PATH ${CMAKE_C_TARGET_INCLUDE_PATH})
 SET(CMAKE_Fortran_TARGET_INCLUDE_PATH ${CMAKE_C_TARGET_INCLUDE_PATH})

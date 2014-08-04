@@ -221,6 +221,30 @@ Controleur.cpp.s:
 	cd /home/gcicera/ibm/vle.extension.ibm/pkgs/IbminsideGVLE/buildvle && $(MAKE) -f src/vle/gvle/global/IbmInsideGVLE/CMakeFiles/Controleur.dir/build.make src/vle/gvle/global/IbmInsideGVLE/CMakeFiles/Controleur.dir/Controleur.cpp.s
 .PHONY : Controleur.cpp.s
 
+ControleurProxy.o: ControleurProxy.cpp.o
+.PHONY : ControleurProxy.o
+
+# target to build an object file
+ControleurProxy.cpp.o:
+	cd /home/gcicera/ibm/vle.extension.ibm/pkgs/IbminsideGVLE/buildvle && $(MAKE) -f src/vle/gvle/global/IbmInsideGVLE/CMakeFiles/Controleur.dir/build.make src/vle/gvle/global/IbmInsideGVLE/CMakeFiles/Controleur.dir/ControleurProxy.cpp.o
+.PHONY : ControleurProxy.cpp.o
+
+ControleurProxy.i: ControleurProxy.cpp.i
+.PHONY : ControleurProxy.i
+
+# target to preprocess a source file
+ControleurProxy.cpp.i:
+	cd /home/gcicera/ibm/vle.extension.ibm/pkgs/IbminsideGVLE/buildvle && $(MAKE) -f src/vle/gvle/global/IbmInsideGVLE/CMakeFiles/Controleur.dir/build.make src/vle/gvle/global/IbmInsideGVLE/CMakeFiles/Controleur.dir/ControleurProxy.cpp.i
+.PHONY : ControleurProxy.cpp.i
+
+ControleurProxy.s: ControleurProxy.cpp.s
+.PHONY : ControleurProxy.s
+
+# target to generate assembly for a file
+ControleurProxy.cpp.s:
+	cd /home/gcicera/ibm/vle.extension.ibm/pkgs/IbminsideGVLE/buildvle && $(MAKE) -f src/vle/gvle/global/IbmInsideGVLE/CMakeFiles/Controleur.dir/build.make src/vle/gvle/global/IbmInsideGVLE/CMakeFiles/Controleur.dir/ControleurProxy.cpp.s
+.PHONY : ControleurProxy.cpp.s
+
 PluginIbmInsideGVLE.o: PluginIbmInsideGVLE.cpp.o
 .PHONY : PluginIbmInsideGVLE.o
 
@@ -265,6 +289,9 @@ help:
 	@echo "... Controleur.o"
 	@echo "... Controleur.i"
 	@echo "... Controleur.s"
+	@echo "... ControleurProxy.o"
+	@echo "... ControleurProxy.i"
+	@echo "... ControleurProxy.s"
 	@echo "... PluginIbmInsideGVLE.o"
 	@echo "... PluginIbmInsideGVLE.i"
 	@echo "... PluginIbmInsideGVLE.s"

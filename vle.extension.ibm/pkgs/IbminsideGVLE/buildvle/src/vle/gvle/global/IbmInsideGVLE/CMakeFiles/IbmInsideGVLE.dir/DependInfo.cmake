@@ -46,6 +46,7 @@ SET(CMAKE_C_TARGET_INCLUDE_PATH
   "/usr/include/at-spi2-atk/2.0"
   "/usr/include/gio-unix-2.0"
   "/usr/include/harfbuzz"
+  "/usr/include/lua5.1"
   )
 SET(CMAKE_CXX_TARGET_INCLUDE_PATH ${CMAKE_C_TARGET_INCLUDE_PATH})
 SET(CMAKE_Fortran_TARGET_INCLUDE_PATH ${CMAKE_C_TARGET_INCLUDE_PATH})
