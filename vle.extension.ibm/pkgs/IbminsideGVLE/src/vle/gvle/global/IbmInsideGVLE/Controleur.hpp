@@ -53,21 +53,38 @@ public:
     virtual vd::Time timeAdvance() const;
 
     virtual void output(const vd::Time& /* time */,
-                        vd::ExternalEventList& /*output*/) const;
+                        vd::ExternalEventList& output) const;
+    
+    vv::Value* observation(const vd::ObservationEvent& event) const;
 
     void addInstruction(int nb_clone, std::string className);
-    
-    
-    
+
     void addModelWith(int nb_clone, std::string className, std::map <std::string, vv::Value*> variableToModify);
     
     void delOneModel(std::string modelName);
     
     double getData(std::string modelName, std::string varName);
+    double getData(std::string className, int n, std::string varName);
+    
+    int countModelOfClass(std::string className);
+    
+    void setGlobalVariable(std::string varName, double varValue);
+    
+    void setModelValue(std::string className, int n, std::string varName, double varValue);
+    
+    /**
+     * @brief Find the number associated to the variable
+     *
+     * @param std::string nb
+     *
+     * @return int 
+     */
+    int readNumber(std::string nb);
     
 private:
     const vd::InitEventList& mEvents;
 	std::string mScript;
+	std::string mScriptExec;
 	std::map <std::string, std::map <std::string, vle::value::Value*> > mData;
 	bool mInternTransition;
 	double mValueStart;
@@ -79,6 +96,7 @@ private:
 	std::vector <std::pair<int, std::string> > mInstructionsComing;
 	std::map <std::string, vle::value::Value*> mVariables;
 	double ta;
+	std::vector <vd::ExternalEvent*> mNextExternalEvent;
 	
 	lua_State *L;
     ControleurProxy mCP;
@@ -93,15 +111,6 @@ private:
     void parseOneLine(std::string line);
     
     void atRegister(double time, std::string instruction);
-    
-    /**
-     * @brief Convert nb to int or find the number associated to the variable
-     *
-     * @param std::string nb
-     *
-     * @return int 
-     */
-    int readNumber(std::string nb);
     
     std::string addOneModel(std::string className);
     
@@ -166,6 +175,10 @@ private:
     void updateData(const vd::ExternalEventList& events);
     
     std::map <std::string, vv::Value*> modifyParameter(std::string className, std::map <std::string, vv::Value*> variableToModify);
+    
+    bool compareModelClass(std::string modelName, std::string className);
+    
+    std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator getItFromData(std::string className, int n);
     
     struct CompareTime {
        bool operator()( const std::pair<int, std::string> a, const std::pair<int, std::string>  b ) const {

@@ -181,6 +181,7 @@ public:
             mButtonApply->signal_clicked().connect(sigc::mem_fun(*this,
                                                      &PluginIbmInsideGVLE::onCancel));
             mXml->get_widget("textviewScript", mTextViewScript);
+            mXml->get_widget("textviewScriptExec", mTextViewScriptExec);
             if (existConditions())
                 fillTextViewScript();
         }
@@ -325,6 +326,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     void createConditions() {
         vpz::Condition* conditionControleur = new vpz::Condition("cond_" + NAME_CONTROLER);
         conditionControleur->add("Script");
+        conditionControleur->add("ScriptExec");
         mGVLE->getModeling()->experiment().conditions().add(*conditionControleur);
         mGVLE->getModeling()->getTopModel()->getModel(NAME_CONTROLER)->toAtomic()->addCondition("cond_" + NAME_CONTROLER);
     }
@@ -336,6 +338,8 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         vpz::Condition& cond = mGVLE->getModeling()->experiment().conditions().get("cond_" + NAME_CONTROLER);
         Glib::RefPtr<Gtk::TextBuffer> buffer = mTextViewScript->get_buffer();
         buffer->set_text(cond.firstValue("Script").toString().value());
+        Glib::RefPtr<Gtk::TextBuffer> bufferExec = mTextViewScriptExec->get_buffer();
+        bufferExec->set_text(cond.firstValue("ScriptExec").toString().value());
     }
 
     /**
@@ -345,6 +349,9 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         Glib::RefPtr<Gtk::TextBuffer> buffer = mTextViewScript->get_buffer();
         vpz::Condition& c = mGVLE->getModeling()->experiment().conditions().get("cond_" + NAME_CONTROLER);
         c.setValueToPort("Script", *(new vle::value::String(buffer->get_text())));
+        
+        Glib::RefPtr<Gtk::TextBuffer> bufferExec = mTextViewScriptExec->get_buffer();
+        c.setValueToPort("ScriptExec", *(new vle::value::String(bufferExec->get_text())));
     }
 
     /**
@@ -763,6 +770,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     Gtk::Window*                                mWindow;
     Gtk::TreeView*                              mClasses;
     Gtk::TextView*                              mTextViewScript;
+    Gtk::TextView*                              mTextViewScriptExec;
     Gtk::Menu*                                  mMenu;
     Gtk::Button*                                mButtonApply;
     Gtk::CellRendererText*                      mCellRenderer;

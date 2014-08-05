@@ -39,10 +39,13 @@ const char ControleurProxy::className[] = "ControleurProxy";
 
 Lunar<ControleurProxy>::RegType ControleurProxy::methods[] = {
     LUNAR_DECLARE_METHOD(ControleurProxy, addModel),
-    LUNAR_DECLARE_METHOD(ControleurProxy, addModelWith),
+    LUNAR_DECLARE_METHOD(ControleurProxy, addModelWithParam),
     LUNAR_DECLARE_METHOD(ControleurProxy, delModel),
     LUNAR_DECLARE_METHOD(ControleurProxy, atAction),
-    LUNAR_DECLARE_METHOD(ControleurProxy, get),
+    LUNAR_DECLARE_METHOD(ControleurProxy, getModelValue),
+    LUNAR_DECLARE_METHOD(ControleurProxy, getNumber),
+    LUNAR_DECLARE_METHOD(ControleurProxy, setModelValue),
+    LUNAR_DECLARE_METHOD(ControleurProxy, addGlobalVar),
     {0,0} };
     
     
@@ -51,16 +54,18 @@ void ControleurProxy::setControleur ( Controleur* controleur) {mControleur = con
 ControleurProxy::~ControleurProxy() { printf("deleted GodProxy (%p)\n", this); }
 
 int ControleurProxy::addModel(lua_State *L) {
-    int nbi = luaL_checknumber(L, 1);
+    int nbi = 0;
+    if (lua_type(L, 1) == LUA_TNUMBER) {
+        nbi = luaL_checknumber(L, 1);
+    } else {
+        nbi = mControleur->readNumber(luaL_checkstring(L, 1));
+    }
     std::string si (luaL_checkstring(L, 2));
-    std::cout << "ADD " << nbi << " " << si << " " << lua_gettop(L) << std::endl;
-    std::cout << "This was just to test!!!"<< std::endl;
     mControleur->addInstruction(nbi, si);
     return 0;
 }
 
-int ControleurProxy::addModelWith(lua_State *L) {
-    std::cout << "ADD WITH " << std::endl;
+int ControleurProxy::addModelWithParam(lua_State *L) {
     std::map<std::string, vv::Value*> variableToModify;
     int top = lua_gettop(L);
     std::string varName = "";
@@ -110,11 +115,42 @@ int ControleurProxy::atAction(lua_State *L) {
     return 0;
 }
 
-int ControleurProxy::get(lua_State *L) {
+int ControleurProxy::getModelValue(lua_State *L) {
     std::string modelName (luaL_checkstring(L, 1));
-    std::string varName (luaL_checkstring(L, 2));
-    double d = mControleur->getData(modelName, varName);
-    std::cout << "value : " << d << std::endl;
+    
+    double d = 0;
+    if (lua_gettop(L) == 2) {
+        std::string varName (luaL_checkstring(L, 2));
+        d = mControleur->getData(modelName, varName);
+    } else {
+        int nb = luaL_checknumber(L, 2);
+        std::string varName (luaL_checkstring(L, 3));
+        d = mControleur->getData(modelName, nb, varName);
+    }
+    lua_pushnumber(L, d);
+    return 1;
+}
+
+int ControleurProxy::getNumber(lua_State *L) {
+    std::string className = luaL_checkstring(L, 1);
+    int d = mControleur->countModelOfClass(className);
+    lua_pushnumber(L, d);
+    return 1;
+}
+
+int ControleurProxy::setModelValue(lua_State *L) {
+    std::string className (luaL_checkstring(L, 1));
+    int i = luaL_checknumber(L, 2);
+    std::string varName (luaL_checkstring(L, 3));
+    int varValue = luaL_checknumber(L, 4);
+    mControleur->setModelValue(className, i, varName, varValue);
+    return 0;
+}
+
+int ControleurProxy::addGlobalVar(lua_State *L) {
+    std::string varName (luaL_checkstring(L, 1));
+    double varValue = luaL_checknumber(L, 2);
+    mControleur->setGlobalVariable(varName, varValue);
     return 0;
 }
 

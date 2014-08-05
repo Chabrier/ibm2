@@ -69,13 +69,13 @@ public:
     void setControleur ( Controleur* controleur);
 
     int addModel(lua_State *L);
-    int addModelWith(lua_State *L);
+    int addModelWithParam(lua_State *L);
     int delModel(lua_State *L);
     int atAction(lua_State *L);
-    int get(lua_State *L);
-    /*int createSky(lua_State *L);
-    int createBird(lua_State *L);
-    int inANeigborhood(lua_State *L);*/
+    int getModelValue(lua_State *L);
+    int getNumber(lua_State *L);
+    int setModelValue(lua_State *L);
+    int addGlobalVar(lua_State *L);
 
     ~ControleurProxy();
 };
