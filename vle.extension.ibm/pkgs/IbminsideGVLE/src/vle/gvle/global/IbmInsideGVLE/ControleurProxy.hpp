@@ -76,6 +76,7 @@ public:
     int getNumber(lua_State *L);
     int setModelValue(lua_State *L);
     int addGlobalVar(lua_State *L);
+    int getModelName(lua_State *L);
 
     ~ControleurProxy();
 };

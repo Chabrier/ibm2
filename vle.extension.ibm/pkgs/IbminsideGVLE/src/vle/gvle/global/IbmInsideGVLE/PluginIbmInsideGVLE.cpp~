@@ -326,6 +326,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     void createConditions() {
         vpz::Condition* conditionControleur = new vpz::Condition("cond_" + NAME_CONTROLER);
         conditionControleur->add("Script");
+        conditionControleur->add("ScriptExec");
         mGVLE->getModeling()->experiment().conditions().add(*conditionControleur);
         mGVLE->getModeling()->getTopModel()->getModel(NAME_CONTROLER)->toAtomic()->addCondition("cond_" + NAME_CONTROLER);
     }

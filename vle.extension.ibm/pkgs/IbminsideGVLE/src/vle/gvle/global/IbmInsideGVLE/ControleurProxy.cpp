@@ -45,7 +45,7 @@ Lunar<ControleurProxy>::RegType ControleurProxy::methods[] = {
     LUNAR_DECLARE_METHOD(ControleurProxy, getModelValue),
     LUNAR_DECLARE_METHOD(ControleurProxy, getNumber),
     LUNAR_DECLARE_METHOD(ControleurProxy, setModelValue),
-    LUNAR_DECLARE_METHOD(ControleurProxy, addGlobalVar),
+    LUNAR_DECLARE_METHOD(ControleurProxy, getModelName),
     {0,0} };
     
     
@@ -147,11 +147,12 @@ int ControleurProxy::setModelValue(lua_State *L) {
     return 0;
 }
 
-int ControleurProxy::addGlobalVar(lua_State *L) {
-    std::string varName (luaL_checkstring(L, 1));
-    double varValue = luaL_checknumber(L, 2);
-    mControleur->setGlobalVariable(varName, varValue);
-    return 0;
+int ControleurProxy::getModelName(lua_State *L) {
+    std::string className (luaL_checkstring(L, 1));
+    int i = luaL_checknumber(L, 2);
+    std::string name = mControleur->getModelNameFromClassNb(className, i);
+    lua_pushstring(L, name.c_str());
+    return 1;
 }
 
 }}}} // namespace vle gvle global ibminsidegvle

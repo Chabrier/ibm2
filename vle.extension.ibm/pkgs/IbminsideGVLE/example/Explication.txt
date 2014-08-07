@@ -1,0 +1,53 @@
+TP1 ModelMaker avec ibm
+
+Prérequis : Assurez-vous d'avoir téléchargé et installer le paquet IbmInsideGVLE
+
+1. Ouvrir GVLE
+2. Créer un projet
+3. Créer un nouveau vpz
+4. Sélectionner le vpz dans la liste à gauche de votre écran
+5. Par le menu déroulant du clic droit sélectionner "Open Ibm"
+
+Une nouvelle fenêtre s'ouvre avec 3 champs. À droite, la colonne de toutes les classes d'individu existantes dans le vpz ouvert. En haut, un champ de texte permettant l'écriture du script qui s'exécutera à l'initialisation. La partie moitiée basse, un champs de texte pour l'écriture du script qui s'exécutera "en continu".
+
+6. Créer une classe grâce au plugin forrester (ou en utiliser une déjà créée). 
+    - Faire un clique droit dans la colonne des classe, puis sélectionnez "New". La fenêtre du plugin forrester s'ouvre. 
+    - Définir votre classe ici. 
+    - Une fois terminée, validez, la fenêtre se ferme.
+    
+7. Vous pouvez créer autant de classe que vous souhaitez et les modifier grâce à "Modify" du menu du clique droit déroulant.
+
+8. Créer 5 individus avec respectivement pour paramètre p1 = 0.08, 0.072, 0.064, 0.056, 0.048. 
+    - Écrire le script d'initialisation. 
+
+for i=0.08, 0.045, -0.008 do
+	ibm:addModelWithParam(1,"M", "p1", i);
+end
+
+#Explication des commandes :
+ibm:addModelWithParam(n,"Model", "param", i);
+ibm:addModelWithParam crée n model de classe "Model" avec le paramètre "param" égal à i.
+
+9. Lorsque le compartiment C2 atteint 0.35, mettre DSAT à 5.
+    - Écrire le script d'exécution :
+for i=1,ibm:getNumber("M"),1 do
+	if ibm:getModelValue("M", i, "C2") >= 0.35 then
+		ibm:setModelValue("M", i, "DSAT", 5);
+	end
+end
+
+#Explication des commandes :
+ibm:getNumber("M") : renvoie le nombre d'individu de la classe M
+ibm:getModelValue("M", i, "C2") : renvoie la valeur de la variable C2 du ième individu de la classe M
+ibm:setModelValue("M", i, "DSAT", 5) : envoie la valeur 5 à DSAT du ième individu de la classe M
+
+10. Observation de acc, déclarer une variable acc, et faire la somme des compartiments C2 de chaque individu.
+    - Écrire dans le script d'exécution :
+acc = 0;
+for i=1, ibm:getNumber("M"), 1 do
+	acc = acc + ibm:getModelValue("M", i, "C2");
+end
+    - Déclarer la variable acc dans les observables et lui associer une vue.
+    - Simuler.
+
+

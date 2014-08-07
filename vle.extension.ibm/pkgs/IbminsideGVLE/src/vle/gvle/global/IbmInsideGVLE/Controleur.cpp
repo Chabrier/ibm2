@@ -50,13 +50,15 @@ Controleur::Controleur(const vd::ExecutiveInit& mdl,
     lua_setglobal(L, "ibm");
 
     if (events.exist("Script"))
-        mScript = events.getString("Script");
+        mScript = events.getXml("Script");
     else
         throw vle::utils::ModellingError("Text Script not found");
-    luaL_dostring(L, mScript.c_str());
+    //if(luaL_dostring(L, mScript.c_str()))
+		//ReportErrors(L);
+		luaL_dostring(L, mScript.c_str());
     
     if (events.exist("ScriptExec"))
-        mScriptExec = events.getString("ScriptExec");
+        mScriptExec = events.getXml("ScriptExec");
     else
         throw vle::utils::ModellingError("Text ScriptExec not found");
 
@@ -77,9 +79,15 @@ vd::Time Controleur::init(const vd::Time& t)
 
 void Controleur::internalTransition(const devs::Time& t)
 {
+    if(mNextExternalEvent.size() != 0) {
+        ta = 0.0001;
+    } else {
+        ta = vd::infinity;
+    }
     mNextExternalEvent.clear();
-    std::cout << "internal transition " << t << std::endl;
-    if (mInstructionsComing.size() > 0) {
+    //
+    //std::cout << "internal transition " << t << std::endl;
+    /*if (mInstructionsComing.size() > 0) {
         std::pair<int, std::string> it = mInstructionsComing.back();
         while (it.first - t <= 0) {
             parseOneLine(it.second);
@@ -91,52 +99,70 @@ void Controleur::internalTransition(const devs::Time& t)
                 break;
             }
         }
-    }
-    mInternTransition = true;
+    }*/
+    //mInternTransition = true;
 }
 
 void Controleur::externalTransition(const vd::ExternalEventList& events,
                         const vd::Time& t)
 {
-    //std::cout << "external" << std::endl;
-    if (mInstructionsComing.size() > 0) 
+    //std::cout << "external " << mScriptExec.c_str() << std::endl;
+    /*if (mInstructionsComing.size() > 0) 
         ta = mInstructionsComing.back().first - t;
-    else ta = vd::infinity;
+    else */ta = 0.0001;//std::numeric_limits<double>::epsilon();
     //std::cout << "ext " << events[0]->getPortName() << " " << events.size() << std::endl;
     updateData(events);
-    
-    if(mValueStart == 0) {
-        std::cout << "NUM " << countModelOfClass("R1") << std::endl;
-        luaL_dostring(L, mScriptExec.c_str());
-        mValueStart = 1;
-    }
+    luaL_dostring(L, mScriptExec.c_str());
+    //showData();
+    //if(mValueStart == 0) {
+        //std::cout << "NUM " << countModelOfClass("R1") << std::endl;
+        //luaL_dostring(L, mScriptExec.c_str());
+       // mValueStart = 1;
+    /*}
     if (mNextExternalEvent.size()>0) {
-        ta = std::numeric_limits<double>::epsilon();
-    }
+        ta = 0;
+    }*/
 }
 
 vd::Time Controleur::timeAdvance() const
 {
     //if(mInternTransition)
-    //std::cout << "timeAdvance " << ta << std::endl;
     
+    if (mNextExternalEvent.size()>0 && ta == vd::infinity) {
+        //std::cout << "timeAdvance " << 0 << std::endl;
+        return 0;
+    }
+    //std::cout << "timeAdvance " << ta << std::endl;
     return ta;
     //return std::numeric_limits<double>::epsilon();
 }
 
-void Controleur::output(const vd::Time& /* time */,
+void Controleur::output(const vd::Time& time ,
                     vd::ExternalEventList& output) const
 {
-    std::cout << "on output " << mNextExternalEvent.size() << std::endl;
+    //std::cout << "on output " << time << " " << mNextExternalEvent.size() << std::endl;
     for (unsigned int i=0; i<mNextExternalEvent.size(); i++) {
         output.push_back(mNextExternalEvent[i]);
     }        
 }
 
 vv::Value* Controleur::observation(const vd::ObservationEvent& event) const {
-    std::cout << "on observable " << std::endl;
-    std::cout << "events " << event.getPortName() << std::endl;
-    return new vv::Double(0.0);
+
+
+    lua_getglobal(L, event.getPortName().c_str());
+    if (!lua_isnumber(L, -1)) {
+        //printf ("error\n");
+        //throw utils::ArgError(fmt("Variable `%1%' is not a number") % event.getPortName());
+        return 0;
+    }
+
+    double nb = lua_tonumber(L, -1);
+    lua_settop(L,0);
+    //std::cout << "p value " << nb << " " << lua_gettop(L) << std::endl;
+    
+    //std::cout << "on observable " << std::endl;
+    //std::cout << "events " << event.getPortName() << std::endl;
+    return new vv::Double(nb);
 }
 
 /**
@@ -455,6 +481,11 @@ bool Controleur::compareModelClass(std::string modelName, std::string className)
     return false;
 }
 
+std::string Controleur::getModelNameFromClassNb(std::string className, int i) {
+    std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it = getItFromData(className, i);
+    return it->first;
+}
+
 int Controleur::countModelOfClass(std::string className) {
     int i = 0; 
     for (std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it = mData.begin(); it!=mData.end(); ++it) {
@@ -465,10 +496,6 @@ int Controleur::countModelOfClass(std::string className) {
     return i;
 }
 
-void Controleur::setGlobalVariable(std::string varName, double varValue) {
-    lua_pushnumber(L, varValue);
-    lua_setglobal(L, varName.c_str());
-}
 
 }}}} // namespace vle gvle global ibminsidegvle
 

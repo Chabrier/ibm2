@@ -1,0 +1,8 @@
+ibm:addModel(n, class); n number or n string of conditions
+ibm:addModelWithParam(class, i, param, value, param, value ...)
+ibm:delModel(modelName)
+ibm:getModelValue(modelName, varName)
+ibm:getModelValue(class, i, varName)
+ibm:getNumber(class)
+ibm:setModelValue(class, i, varName, varValue)
+ibm:getModelName(class,i)

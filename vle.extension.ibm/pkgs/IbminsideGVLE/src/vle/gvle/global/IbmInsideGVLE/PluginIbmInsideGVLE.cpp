@@ -337,9 +337,9 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     void fillTextViewScript() {
         vpz::Condition& cond = mGVLE->getModeling()->experiment().conditions().get("cond_" + NAME_CONTROLER);
         Glib::RefPtr<Gtk::TextBuffer> buffer = mTextViewScript->get_buffer();
-        buffer->set_text(cond.firstValue("Script").toString().value());
+        buffer->set_text(cond.firstValue("Script").toXml().value());
         Glib::RefPtr<Gtk::TextBuffer> bufferExec = mTextViewScriptExec->get_buffer();
-        bufferExec->set_text(cond.firstValue("ScriptExec").toString().value());
+        bufferExec->set_text(cond.firstValue("ScriptExec").toXml().value());
     }
 
     /**
@@ -348,10 +348,10 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     void saveScriptOnCondition() {
         Glib::RefPtr<Gtk::TextBuffer> buffer = mTextViewScript->get_buffer();
         vpz::Condition& c = mGVLE->getModeling()->experiment().conditions().get("cond_" + NAME_CONTROLER);
-        c.setValueToPort("Script", *(new vle::value::String(buffer->get_text())));
+        c.setValueToPort("Script", *(new vle::value::Xml(buffer->get_text())));
         
         Glib::RefPtr<Gtk::TextBuffer> bufferExec = mTextViewScriptExec->get_buffer();
-        c.setValueToPort("ScriptExec", *(new vle::value::String(bufferExec->get_text())));
+        c.setValueToPort("ScriptExec", *(new vle::value::Xml(bufferExec->get_text())));
     }
 
     /**

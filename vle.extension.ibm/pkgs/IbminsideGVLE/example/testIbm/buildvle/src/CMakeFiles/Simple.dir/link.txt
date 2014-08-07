@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC  -Wall -Wextra -O2 -g -DNDEBUG   -shared -Wl,-soname,libSimple.so -o libSimple.so CMakeFiles/Simple.dir/Simple.cpp.o  -L/home/gcicera/local/lib -lvle-1.3 -lxml2 -lglibmm-2.4 -lgobject-2.0 -lsigc-2.0 -lglib-2.0 -lboost_unit_test_framework -lboost_date_time -Wl,-rpath,/home/gcicera/local/lib: 

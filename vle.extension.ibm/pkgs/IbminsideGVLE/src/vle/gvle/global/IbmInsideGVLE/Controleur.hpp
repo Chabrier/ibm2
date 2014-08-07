@@ -66,9 +66,9 @@ public:
     double getData(std::string modelName, std::string varName);
     double getData(std::string className, int n, std::string varName);
     
-    int countModelOfClass(std::string className);
+    std::string getModelNameFromClassNb(std::string className, int i);
     
-    void setGlobalVariable(std::string varName, double varValue);
+    int countModelOfClass(std::string className);
     
     void setModelValue(std::string className, int n, std::string varName, double varValue);
     
