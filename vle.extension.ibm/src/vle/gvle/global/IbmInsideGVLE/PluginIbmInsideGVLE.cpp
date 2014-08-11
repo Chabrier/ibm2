@@ -156,7 +156,7 @@ public:
     {
         Glib::RefPtr< Gtk::Builder > mXml = Gtk::Builder::create();
 
-        vle::utils::Package pack("IbminsideGVLE");
+        vle::utils::Package pack("vle.extension.ibm");
         std::string glade = pack.getPluginGvleModelingFile("ibmGVLE.glade", vle::utils::PKG_BINARY);
         mXml->add_from_file(glade);
 
@@ -305,7 +305,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     void createDynControleur() {
         vpz::Dynamic dyn("dyn" + NAME_CONTROLER);
         dyn.setLibrary(NAME_CONTROLER);
-        dyn.setPackage("IbminsideGVLE");//mGVLE->currentPackage().name()
+        dyn.setPackage("vle.extension.ibm");//mGVLE->currentPackage().name()
         mGVLE->getModeling()->vpz().project().dynamics().add(dyn);
         vpz::AtomicModel* atom = mGVLE->getModeling()->getTopModel()->getModel(NAME_CONTROLER)->toAtomic();
         atom->setDynamics(dyn.name());
@@ -598,7 +598,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         vpz::Observables& obs = mGVLE->getModeling()->observables();
         mAtomicModel = new vpz::AtomicModel(mName, NULL);
 
-        const std::string namespace_ = "IbminsideGVLE";
+        const std::string namespace_ = "vle.extension.ibm";
         if (plugin->create(*mAtomicModel, dyn, cond, obs, mName, namespace_))
         {
             const std::string& buffer = plugin->source();

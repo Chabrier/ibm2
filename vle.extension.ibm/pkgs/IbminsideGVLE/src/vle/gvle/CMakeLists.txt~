@@ -1,4 +1,0 @@
-#TODO remove or fix differentialEquation modelisation plugin
-add_subdirectory(global)
-
-install(FILES ibmGVLE.glade DESTINATION ${VLE_SHARE_DIRS}/glade)
