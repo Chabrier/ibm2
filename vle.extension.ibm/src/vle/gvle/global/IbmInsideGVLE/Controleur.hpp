@@ -81,7 +81,10 @@ public:
      */
     int readNumber(std::string nb);
     
+    double getTime();
+    
 private:
+    double time;
     const vd::InitEventList& mEvents;
 	std::string mScript;
 	std::string mScriptExec;

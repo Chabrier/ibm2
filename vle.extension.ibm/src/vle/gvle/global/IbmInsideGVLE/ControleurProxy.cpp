@@ -46,6 +46,7 @@ Lunar<ControleurProxy>::RegType ControleurProxy::methods[] = {
     LUNAR_DECLARE_METHOD(ControleurProxy, getNumber),
     LUNAR_DECLARE_METHOD(ControleurProxy, setModelValue),
     LUNAR_DECLARE_METHOD(ControleurProxy, getModelName),
+    LUNAR_DECLARE_METHOD(ControleurProxy, getTime),
     {0,0} };
     
     
@@ -61,6 +62,7 @@ int ControleurProxy::addModel(lua_State *L) {
         nbi = mControleur->readNumber(luaL_checkstring(L, 1));
     }
     std::string si (luaL_checkstring(L, 2));
+    std::cout << "ajoute " << nbi << " " << si << std::endl;
     mControleur->addInstruction(nbi, si);
     return 0;
 }
@@ -152,6 +154,11 @@ int ControleurProxy::getModelName(lua_State *L) {
     int i = luaL_checknumber(L, 2);
     std::string name = mControleur->getModelNameFromClassNb(className, i);
     lua_pushstring(L, name.c_str());
+    return 1;
+}
+
+int ControleurProxy::getTime(lua_State *L) {
+    lua_pushnumber(L, mControleur->getTime());
     return 1;
 }
 

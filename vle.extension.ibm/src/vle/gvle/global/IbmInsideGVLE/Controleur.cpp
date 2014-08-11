@@ -72,6 +72,7 @@ Controleur::~Controleur() {}
 
 vd::Time Controleur::init(const vd::Time& t)
 {
+    time = t;
     if (mInstructionsComing.size() > 0)
         ta = mInstructionsComing.back().first - t;
     else ta = vd::infinity;
@@ -81,6 +82,7 @@ vd::Time Controleur::init(const vd::Time& t)
 
 void Controleur::internalTransition(const devs::Time& t)
 {
+    time = t;
     if(mNextExternalEvent.size() != 0) {
         ta = 0.0001;
     } else {
@@ -108,6 +110,8 @@ void Controleur::internalTransition(const devs::Time& t)
 void Controleur::externalTransition(const vd::ExternalEventList& events,
                         const vd::Time& t)
 {
+    time = t;
+    //std::cout << "taille data " << mData.size() << std::endl;
     //std::cout << "external " << mScriptExec.c_str() << std::endl;
     /*if (mInstructionsComing.size() > 0) 
         ta = mInstructionsComing.back().first - t;
@@ -277,7 +281,9 @@ int Controleur::readNumber(std::string nb) {
 }
 
 std::string Controleur::addOneModel(std::string className) {
+    std::cout << "on add one model"<< className << std::endl;
     std::string modelName = findModelName(className);
+    std::cout << modelName << std::endl;
 	const vpz::BaseModel* newModel = createModelFromClass(className, modelName);
 	connectionModelToExec(modelName, newModel);
 	connectionExecToModel(modelName);
@@ -443,6 +449,7 @@ void Controleur::updateData(const vd::ExternalEventList& events) {
 
         putInStructure(getModelNameFromPort(s), variable, events[i]->getAttributes().get("value"));
     }
+    
     //showDataLua();
 }
 
@@ -497,6 +504,10 @@ int Controleur::countModelOfClass(std::string className) {
         }
     }
     return i;
+}
+
+double Controleur::getTime() {
+    return time;
 }
 
 int Controleur::PrintErrorMessageOrNothing(int errorCode)

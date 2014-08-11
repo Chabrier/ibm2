@@ -63,19 +63,16 @@ end]]>
 <double>1.000000000000000</double>
 </port>
  <port name="C2" >
-<double>0.000000000000000</double>
 </port>
  <port name="C3" >
-<double>0.000000000000000</double>
 </port>
  <port name="DSAT" >
-<double>0.000000000000000</double>
 </port>
  <port name="p1" >
 <double>0.080000000000000</double>
 </port>
  <port name="variables" >
-<map><key name="C1"><double>1.000000000000000</double></key><key name="C2"><double>0.000000000000000</double></key><key name="C3"><double>0.000000000000000</double></key><key name="DSAT"><double>0.000000000000000</double></key></map>
+<map><key name="C1"><double>1.000000000000000</double></key><key name="C2"></key><key name="C3"></key><key name="DSAT"></key></map>
 </port>
 </condition>
 <condition name="cond_DTE_MZ" >
@@ -101,43 +98,30 @@ end]]>
 </condition>
 <condition name="simulation_engine" >
  <port name="begin" >
-<double>0.000000000000000</double>
 </port>
  <port name="duration" >
-<double>100.000000000000000</double>
 </port>
 </condition>
 </conditions>
 <views>
 <outputs>
 <output name="testView" location="" format="local" package="vle.output"  plugin="file" />
-
 </outputs>
 <observables>
 <observable name="obs_DTE_M" >
 <port name="C1" />
-
 <port name="C2" />
-
 <port name="C3" />
-
 <port name="DSAT" />
-
 <port name="acc" >
  <attachedview name="testView" />
 </port>
-
 <port name="f1" />
-
 <port name="f2" />
-
 </observable>
-
 <observable name="obs_DTE_MZ" />
-
 </observables>
 <view name="testView" output="testView" type="timed" timestep="1.000000000000000" />
-
 </views>
 </experiment>
 </vle_project>
