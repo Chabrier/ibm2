@@ -180,6 +180,8 @@ private:
     
     std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator getItFromData(std::string className, int n);
     
+    int PrintErrorMessageOrNothing(int ErrorCode);
+    
     struct CompareTime {
        bool operator()( const std::pair<int, std::string> a, const std::pair<int, std::string>  b ) const {
           return a.first > b.first;

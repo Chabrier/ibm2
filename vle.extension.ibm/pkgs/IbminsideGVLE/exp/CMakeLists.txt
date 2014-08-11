@@ -1,1 +1,1 @@
-install(FILES empty.vpz DESTINATION exp)
+install(FILES empty.vpz IC.vpz test.vpz DESTINATION exp)

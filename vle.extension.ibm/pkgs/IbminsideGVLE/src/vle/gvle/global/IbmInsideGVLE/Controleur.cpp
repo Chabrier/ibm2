@@ -55,7 +55,9 @@ Controleur::Controleur(const vd::ExecutiveInit& mdl,
         throw vle::utils::ModellingError("Text Script not found");
     //if(luaL_dostring(L, mScript.c_str()))
 		//ReportErrors(L);
-		luaL_dostring(L, mScript.c_str());
+		int errorCode = luaL_dostring(L, mScript.c_str());
+		
+    PrintErrorMessageOrNothing(errorCode);
     
     if (events.exist("ScriptExec"))
         mScriptExec = events.getXml("ScriptExec");
@@ -112,7 +114,8 @@ void Controleur::externalTransition(const vd::ExternalEventList& events,
     else */ta = 0.0001;//std::numeric_limits<double>::epsilon();
     //std::cout << "ext " << events[0]->getPortName() << " " << events.size() << std::endl;
     updateData(events);
-    luaL_dostring(L, mScriptExec.c_str());
+    int errorCode = luaL_dostring(L, mScriptExec.c_str());
+    PrintErrorMessageOrNothing(errorCode);
     //showData();
     //if(mValueStart == 0) {
         //std::cout << "NUM " << countModelOfClass("R1") << std::endl;
@@ -496,6 +499,14 @@ int Controleur::countModelOfClass(std::string className) {
     return i;
 }
 
+int Controleur::PrintErrorMessageOrNothing(int errorCode)
+{
+   if (errorCode != 0) {
+		throw utils::ArgError(fmt("Lua Error Code: `%1%' ") % lua_tostring(L, -1));
+		//printf("%s\n", lua_tostring(L, -1));
+		}
+   return errorCode;
+}
 
 }}}} // namespace vle gvle global ibminsidegvle
 
