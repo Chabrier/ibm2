@@ -2,9 +2,9 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.3.0.dtd">
 <vle_project version="1.3.0" date="2014-Aug-06 12:34:59" author="Genevieve Cirera">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="475" height="483"  >
+<model name="Top model" type="coupled" x="0" y="0" width="475" height="344"  >
 <submodels>
-<model name="Controleur" type="atomic" conditions="cond_Controleur" dynamics="dynControleur" observables="obs_DTE_M" x="50" y="50" width="40" height="30" >
+<model name="Controleur" type="atomic" conditions="cond_Controleur" dynamics="dynControleur" observables="obs_Controleur" x="50" y="50" width="40" height="30" >
 </model>
 </submodels>
 <connections>
@@ -17,7 +17,7 @@
 </dynamics>
 <classes>
 <class name="M" >
-<model name="M" type="atomic" conditions="cond_DTE_M_integration,cond_DTE_M" dynamics="M" >
+<model name="M" type="atomic" conditions="cond_DTE_M,cond_DTE_M_integration" dynamics="M" observables="obs_DTE_M" >
 <in>
  <port name="perturb" />
 </in>
@@ -63,16 +63,19 @@ end]]>
 <double>1.000000000000000</double>
 </port>
  <port name="C2" >
+<double>0.000000000000000</double>
 </port>
  <port name="C3" >
+<double>0.000000000000000</double>
 </port>
  <port name="DSAT" >
+<double>0.000000000000000</double>
 </port>
  <port name="p1" >
 <double>0.080000000000000</double>
 </port>
  <port name="variables" >
-<map><key name="C1"><double>1.000000000000000</double></key><key name="C2"></key><key name="C3"></key><key name="DSAT"></key></map>
+<map><key name="C1"><double>1.000000000000000</double></key><key name="C2"><double>0.000000000000000</double></key><key name="C3"><double>0.000000000000000</double></key><key name="DSAT"><double>0.000000000000000</double></key></map>
 </port>
 </condition>
 <condition name="cond_DTE_MZ" >
@@ -98,30 +101,47 @@ end]]>
 </condition>
 <condition name="simulation_engine" >
  <port name="begin" >
+<double>0.000000000000000</double>
 </port>
  <port name="duration" >
+<double>100.000000000000000</double>
 </port>
 </condition>
 </conditions>
 <views>
 <outputs>
-<output name="testView" location="" format="local" package="vle.output"  plugin="file" />
+<output name="tpView" location="" format="local" package="vle.output"  plugin="file" />
 </outputs>
 <observables>
+<observable name="obs_Controleur" >
+<port name="acc" >
+ <attachedview name="tpView" />
+</port>
+
+</observable>
+
 <observable name="obs_DTE_M" >
 <port name="C1" />
-<port name="C2" />
-<port name="C3" />
-<port name="DSAT" />
-<port name="acc" >
- <attachedview name="testView" />
+
+<port name="C2" >
+ <attachedview name="tpView" />
 </port>
+
+<port name="C3" />
+
+<port name="DSAT" />
+
+<port name="acc" />
+
 <port name="f1" />
+
 <port name="f2" />
+
 </observable>
-<observable name="obs_DTE_MZ" />
+
 </observables>
-<view name="testView" output="testView" type="timed" timestep="1.000000000000000" />
+<view name="tpView" output="tpView" type="timed" timestep="1.000000000000000" />
+
 </views>
 </experiment>
 </vle_project>

@@ -89,35 +89,14 @@ private:
 	std::string mScript;
 	std::string mScriptExec;
 	std::map <std::string, std::map <std::string, vle::value::Value*> > mData;
-	bool mInternTransition;
-	double mValueStart;
-	double mValueC1;
-	double mValueC2;
-	std::string toEmptyName;
-	std::string toFillName;
 	std::map <std::string, int> mNameNumber;
-	std::vector <std::pair<int, std::string> > mInstructionsComing;
-	std::map <std::string, vle::value::Value*> mVariables;
 	double ta;
 	std::vector <vd::ExternalEvent*> mNextExternalEvent;
 	
 	lua_State *L;
     ControleurProxy mCP;
     
-    void addVar(std::string varName, vle::value::Value* varValue);
-    
-    /**
-     * @brief Parse the script
-     */
-	void parseScript();
-    
-    void parseOneLine(std::string line);
-    
-    void atRegister(double time, std::string instruction);
-    
     std::string addOneModel(std::string className);
-    
-    std::map <std::string, vv::Value*> parseWITH(std::string line);
     
     /**
      * @brief Find a name starting with className_ and a number doesn't used
@@ -168,10 +147,6 @@ private:
     void putInStructure(std::string modelName, std::string variable, vle::value::Value* value);
     
     void showData();
-    
-    void showDataLua();
-    
-    void showInstructionListWaiting();
     
     std::string getModelNameFromPort(std::string s);
     

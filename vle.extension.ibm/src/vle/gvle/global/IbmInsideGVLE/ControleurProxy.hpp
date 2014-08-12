@@ -63,7 +63,7 @@ public:
     static const char className[];
     static Lunar<ControleurProxy>::RegType methods[];
 
-    ControleurProxy(lua_State *L) {}
+    ControleurProxy(lua_State */*L*/) {}
     ControleurProxy() {}
 
     void setControleur ( Controleur* controleur);
@@ -71,7 +71,6 @@ public:
     int addModel(lua_State *L);
     int addModelWithParam(lua_State *L);
     int delModel(lua_State *L);
-    int atAction(lua_State *L);
     int getModelValue(lua_State *L);
     int getNumber(lua_State *L);
     int setModelValue(lua_State *L);

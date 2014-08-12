@@ -41,7 +41,6 @@ Lunar<ControleurProxy>::RegType ControleurProxy::methods[] = {
     LUNAR_DECLARE_METHOD(ControleurProxy, addModel),
     LUNAR_DECLARE_METHOD(ControleurProxy, addModelWithParam),
     LUNAR_DECLARE_METHOD(ControleurProxy, delModel),
-    LUNAR_DECLARE_METHOD(ControleurProxy, atAction),
     LUNAR_DECLARE_METHOD(ControleurProxy, getModelValue),
     LUNAR_DECLARE_METHOD(ControleurProxy, getNumber),
     LUNAR_DECLARE_METHOD(ControleurProxy, setModelValue),
@@ -62,7 +61,6 @@ int ControleurProxy::addModel(lua_State *L) {
         nbi = mControleur->readNumber(luaL_checkstring(L, 1));
     }
     std::string si (luaL_checkstring(L, 2));
-    std::cout << "ajoute " << nbi << " " << si << std::endl;
     mControleur->addInstruction(nbi, si);
     return 0;
 }
@@ -78,13 +76,11 @@ int ControleurProxy::addModelWithParam(lua_State *L) {
         switch (t) {
           case LUA_TSTRING: { 
             varName = lua_tostring(L, i);
-            std::cout << varName << std::endl;
             break;
             }
           case LUA_TNUMBER:{
             double d = lua_tonumber(L, i);
             varValue = new vv::Double(d);
-            std::cout << varValue->toDouble().value() << std::endl;
             break;
             }
           default:
@@ -106,14 +102,6 @@ int ControleurProxy::delModel(lua_State *L) {
         mControleur->delOneModel(lua_tostring(L, i));
     }
     
-    return 0;
-}
-
-int ControleurProxy::atAction(lua_State *L) {
-    double time = luaL_checknumber(L, 1);
-    std::string action (luaL_checkstring(L, 2));
-    
-    //mControleur->atRegister(time, action);
     return 0;
 }
 

@@ -35,7 +35,7 @@ namespace ibminsidegvle {
 
 Controleur::Controleur(const vd::ExecutiveInit& mdl,
            const vd::InitEventList& events)
-: vd::Executive(mdl, events), mEvents(events), mInternTransition(false), mValueStart(0)
+: vd::Executive(mdl, events), mEvents(events)
 {
     L = luaL_newstate();
     luaL_openlibs(L);
@@ -53,9 +53,8 @@ Controleur::Controleur(const vd::ExecutiveInit& mdl,
         mScript = events.getXml("Script");
     else
         throw vle::utils::ModellingError("Text Script not found");
-    //if(luaL_dostring(L, mScript.c_str()))
-		//ReportErrors(L);
-		int errorCode = luaL_dostring(L, mScript.c_str());
+
+	int errorCode = luaL_dostring(L, mScript.c_str());
 		
     PrintErrorMessageOrNothing(errorCode);
     
@@ -63,9 +62,6 @@ Controleur::Controleur(const vd::ExecutiveInit& mdl,
         mScriptExec = events.getXml("ScriptExec");
     else
         throw vle::utils::ModellingError("Text ScriptExec not found");
-
-    std::ofstream file("/home/gcicera/outputTestHahaha.vpz");
-    dump(file, "dumpHahaha");
 }
 
 Controleur::~Controleur() {}
@@ -73,10 +69,7 @@ Controleur::~Controleur() {}
 vd::Time Controleur::init(const vd::Time& t)
 {
     time = t;
-    if (mInstructionsComing.size() > 0)
-        ta = mInstructionsComing.back().first - t;
-    else ta = vd::infinity;
-    mInternTransition = true;
+    ta = vd::infinity;
     return ta;
 }
 
@@ -89,65 +82,29 @@ void Controleur::internalTransition(const devs::Time& t)
         ta = vd::infinity;
     }
     mNextExternalEvent.clear();
-    //
-    //std::cout << "internal transition " << t << std::endl;
-    /*if (mInstructionsComing.size() > 0) {
-        std::pair<int, std::string> it = mInstructionsComing.back();
-        while (it.first - t <= 0) {
-            parseOneLine(it.second);
-            mInstructionsComing.pop_back();
-            if (mInstructionsComing.size() > 0)
-                it = mInstructionsComing.back();
-            else {
-                ta = vd::infinity;
-                break;
-            }
-        }
-    }*/
-    //mInternTransition = true;
 }
 
 void Controleur::externalTransition(const vd::ExternalEventList& events,
                         const vd::Time& t)
 {
     time = t;
-    //std::cout << "taille data " << mData.size() << std::endl;
-    //std::cout << "external " << mScriptExec.c_str() << std::endl;
-    /*if (mInstructionsComing.size() > 0) 
-        ta = mInstructionsComing.back().first - t;
-    else */ta = 0.0001;//std::numeric_limits<double>::epsilon();
-    //std::cout << "ext " << events[0]->getPortName() << " " << events.size() << std::endl;
+    ta = 0.0001;//std::numeric_limits<double>::epsilon();
     updateData(events);
     int errorCode = luaL_dostring(L, mScriptExec.c_str());
     PrintErrorMessageOrNothing(errorCode);
-    //showData();
-    //if(mValueStart == 0) {
-        //std::cout << "NUM " << countModelOfClass("R1") << std::endl;
-        //luaL_dostring(L, mScriptExec.c_str());
-       // mValueStart = 1;
-    /*}
-    if (mNextExternalEvent.size()>0) {
-        ta = 0;
-    }*/
 }
 
 vd::Time Controleur::timeAdvance() const
 {
-    //if(mInternTransition)
-    
     if (mNextExternalEvent.size()>0 && ta == vd::infinity) {
-        //std::cout << "timeAdvance " << 0 << std::endl;
         return 0;
     }
-    //std::cout << "timeAdvance " << ta << std::endl;
     return ta;
-    //return std::numeric_limits<double>::epsilon();
 }
 
-void Controleur::output(const vd::Time& time ,
+void Controleur::output(const vd::Time& /*time*/,
                     vd::ExternalEventList& output) const
 {
-    //std::cout << "on output " << time << " " << mNextExternalEvent.size() << std::endl;
     for (unsigned int i=0; i<mNextExternalEvent.size(); i++) {
         output.push_back(mNextExternalEvent[i]);
     }        
@@ -158,17 +115,11 @@ vv::Value* Controleur::observation(const vd::ObservationEvent& event) const {
 
     lua_getglobal(L, event.getPortName().c_str());
     if (!lua_isnumber(L, -1)) {
-        //printf ("error\n");
-        //throw utils::ArgError(fmt("Variable `%1%' is not a number") % event.getPortName());
         return 0;
     }
 
     double nb = lua_tonumber(L, -1);
     lua_settop(L,0);
-    //std::cout << "p value " << nb << " " << lua_gettop(L) << std::endl;
-    
-    //std::cout << "on observable " << std::endl;
-    //std::cout << "events " << event.getPortName() << std::endl;
     return new vv::Double(nb);
 }
 
@@ -208,62 +159,7 @@ void Controleur::delOneModel(std::string modelName) {
     delModel(modelName);
     removeInputPortExec(modelName);
     removeOutputPortExec(modelName);
-    std::cout << "DELETE " << modelName << std::endl;
     mData.erase(modelName);
-}
-
-void Controleur::addVar(std::string varName, vle::value::Value* varValue) {
-    mVariables.insert(std::pair<std::string, vle::value::Value*>(varName, varValue));
-}
-
-/**
- * @brief Parse the script
- */
-void Controleur::parseScript() {
-    std::vector<std::string> lines;
-    boost::split(lines, mScript, boost::is_any_of("\n"));
-    
-    for (unsigned int i = 0; i<lines.size(); i++) {
-        parseOneLine(lines[i]);
-    }
-    showData();
-    showInstructionListWaiting();
-}
-
-void Controleur::parseOneLine(std::string line) {
-    std::cout << "enum " << line << std::endl;
-    std::vector<std::string> words;
-    boost::split(words, line, boost::is_any_of(" "));
-    boost::to_upper(words[0]);
-    if (words[0] == "ADD")
-    {
-        try {
-            int nb_clone = readNumber(words[1]);
-            std::map <std::string, vv::Value*> variableToModify;
-            if (boost::contains(line, "WITH")) {
-                variableToModify = parseWITH(line);
-                modifyParameter(words[2], variableToModify);
-             }
-            addInstruction(nb_clone, words[2]);
-        } catch(const char* Message) {
-            throw utils::ArgError(Message);
-        }
-    } else if (words[0] == "DEL") {
-        delInstruction(words);
-    } else if (words[0].substr(0,1) == "@") {
-        std::string time = words[0];
-        std::string instruction = line.substr(words[0].size() + 1);
-        int time_dec = atoi(time.substr(1).c_str());
-        atRegister(time_dec, instruction);
-    } else if (words[0] != ""){
-        throw utils::ArgError(fmt("Directive `%1%' not found") % words[0]);
-    }
-}
-
-void Controleur::atRegister(double time, std::string instruction) {
-    mInstructionsComing.push_back(std::pair<int, std::string> (time, instruction));
-    CompareTime compTime;
-    std::sort(mInstructionsComing.begin(), mInstructionsComing.end(), compTime);
 }
 
 /**
@@ -281,30 +177,12 @@ int Controleur::readNumber(std::string nb) {
 }
 
 std::string Controleur::addOneModel(std::string className) {
-    std::cout << "on add one model"<< className << std::endl;
     std::string modelName = findModelName(className);
-    std::cout << modelName << std::endl;
 	const vpz::BaseModel* newModel = createModelFromClass(className, modelName);
 	connectionModelToExec(modelName, newModel);
 	connectionExecToModel(modelName);
 	
 	return modelName;
-}
-
-std::map <std::string, vv::Value*> Controleur::parseWITH(std::string line) {
-    std::map <std::string, vv::Value*> nameAndValue;
-    boost::to_upper(line);
-    std::string part = line.substr(line.find("WITH") + 5);
-    std::vector<std::string> variablesEqualValue;
-    boost::split(variablesEqualValue, part, boost::is_any_of(","));
-    for (unsigned int i=0; i<variablesEqualValue.size(); i++) {
-        std::vector<std::string> variablesAndValue;
-        boost::split(variablesAndValue, variablesEqualValue[i], boost::is_any_of("="));
-        boost::replace_all(variablesAndValue[0], " ", "");
-        boost::replace_all(variablesAndValue[1], " ", "");
-        //nameAndValue.insert(std::pair<std::string, vv::Double> (variablesAndValue[0], variablesAndValue[1])); Changer le string en double
-    }
-    return nameAndValue;
 }
 
 /**
@@ -327,7 +205,6 @@ std::string Controleur::findModelName(std::string className) {
     ss << i;
     modelName += ss.str();
     i++;
-    //it->second = i;
     mNameNumber[className] = i;
     return modelName;
 }
@@ -380,7 +257,7 @@ void Controleur::removeInputPortExec(std::string modelName) {
     std::vector<std::string> toRemove;
     std::map<std::string, vpz::ModelPortList> portList = getModel().getInputPortList();
     for (std::map<std::string, vpz::ModelPortList>::iterator it=portList.begin(); it!=portList.end(); ++it){
-        std::string temp = it->first.substr(0, modelName.size());
+        std::string temp = getModelNameFromPort(it->first);
         if (temp == modelName) {
             toRemove.push_back(it->first);
         }
@@ -424,24 +301,6 @@ void Controleur::showData() {
     }
 }
 
-void Controleur::showDataLua() {
-    double d = 0;
-    lua_getglobal(L, "R1_C1");
-    d = (double)lua_tonumber(L, -1);
-    std::cout << "youhou !!! " << d << std::endl;
-}
-
-void Controleur::showInstructionListWaiting() {
-    for (unsigned int i = 0; i<mInstructionsComing.size(); i++) {
-        std::cout << "Instruction waiting " << mInstructionsComing[i].first << " " << mInstructionsComing[i].second << std::endl;
-    }
-}
-
-std::string Controleur::getModelNameFromPort(std::string s) {
-    unsigned i = s.find_last_of("_");
-    return s.substr(0, i);
-}
-
 void Controleur::updateData(const vd::ExternalEventList& events) {
     for (unsigned int i=0; i<events.size(); i++) {
         std::string s = events[i]->getPortName();
@@ -449,8 +308,6 @@ void Controleur::updateData(const vd::ExternalEventList& events) {
 
         putInStructure(getModelNameFromPort(s), variable, events[i]->getAttributes().get("value"));
     }
-    
-    //showDataLua();
 }
 
 double Controleur::getData(std::string modelName, std::string varName) {
@@ -464,7 +321,6 @@ double Controleur::getData(std::string className, int n, std::string varName) {
 
 void Controleur::setModelValue(std::string className, int n, std::string varName, double varValue) {
     std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it = getItFromData(className, n);
-    std::cout << "set " << it->first << " " << varName << " " << varValue << std::endl;
     vd::ExternalEvent* e = new vd::ExternalEvent(it->first + "_toPerturb");
     e->putAttribute("name", new vv::String(varName));
     e->putAttribute("value", new vv::Double(varValue));
@@ -496,6 +352,11 @@ std::string Controleur::getModelNameFromClassNb(std::string className, int i) {
     return it->first;
 }
 
+std::string Controleur::getModelNameFromPort(std::string s) {
+    unsigned i = s.find_last_of("_");
+    return s.substr(0, i);
+}
+
 int Controleur::countModelOfClass(std::string className) {
     int i = 0; 
     for (std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it = mData.begin(); it!=mData.end(); ++it) {
@@ -514,7 +375,6 @@ int Controleur::PrintErrorMessageOrNothing(int errorCode)
 {
    if (errorCode != 0) {
 		throw utils::ArgError(fmt("Lua Error Code: `%1%' ") % lua_tostring(L, -1));
-		//printf("%s\n", lua_tostring(L, -1));
 		}
    return errorCode;
 }
