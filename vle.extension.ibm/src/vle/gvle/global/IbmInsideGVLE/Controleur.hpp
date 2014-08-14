@@ -7,8 +7,9 @@
 #define CONTROLEUR_HPP
 
 #include "ControleurProxy.hpp"
-#include <vle/devs/Executive.hpp>
-#include <vle/devs/ExecutiveDbg.hpp>
+#include <vle/extension/mas/GenericAgent.hpp>
+//#include <vle/devs/Executive.hpp>
+//#include <vle/devs/ExecutiveDbg.hpp>
 #include <vle/vpz/Conditions.hpp>
 #include <map>
 #include <sstream>
@@ -25,7 +26,7 @@
 
 namespace vd = vle::devs;
 namespace vc = vle::vpz;
-namespace vv = vle::value;
+//namespace vv = vle::value;
 
 namespace vle {
 namespace gvle {
@@ -35,27 +36,27 @@ namespace ibminsidegvle {
 *@@tagdynamic@@
 *@@tagdepends:@@endtagdepends
 */
-class Controleur : public vd::Executive
+class Controleur : public GenericAgent
 {    
 public:
     Controleur(const vd::ExecutiveInit& mdl,
                const vd::InitEventList& events);
 
-    virtual ~Controleur();
+    ~Controleur();
 
-    virtual vd::Time init(const vd::Time& t);
+    /*virtual vd::Time init(const vd::Time& t);
     
     virtual void internalTransition(const devs::Time& t);
 
-    void externalTransition(const vd::ExternalEventList& events,
+    virtual void externalTransition(const vd::ExternalEventList& events,
                             const vd::Time& t);
 
     virtual vd::Time timeAdvance() const;
 
-    virtual void output(const vd::Time& /* time */,
+    virtual void output(const vd::Time&  time ,
                         vd::ExternalEventList& output) const;
     
-    vv::Value* observation(const vd::ObservationEvent& event) const;
+    vv::Value* observation(const vd::ObservationEvent& event) const;*/
 
     void addInstruction(int nb_clone, std::string className);
 
@@ -83,6 +84,18 @@ public:
     
     double getTime();
     
+    void doScript(const Effect& /*e*/);
+    
+    Effect doScriptEffect(double t,const std::string& source);
+
+protected:
+    /** @brief Pure virtual agent functions. Modeler must override them */
+    virtual void agent_dynamic();
+    /** @brief Pure virtual agent functions. Modeler must override them */
+    virtual void agent_init();
+    /** @brief Pure virtual agent functions. Modeler must override them */
+    virtual void agent_handleEvent(const Message&);
+    
 private:
     double time;
     const vd::InitEventList& mEvents;
@@ -92,6 +105,7 @@ private:
 	std::map <std::string, int> mNameNumber;
 	double ta;
 	std::vector <vd::ExternalEvent*> mNextExternalEvent;
+	std::vector <std::string> mDeadModel;
 	
 	lua_State *L;
     ControleurProxy mCP;

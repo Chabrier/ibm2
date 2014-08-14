@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.3.0.dtd">
 <vle_project version="1.3.0" date="2014-Aug-07 08:19:27" author="Genevieve Cirera">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="475" height="422"  >
+<model name="Top model" type="coupled" x="0" y="0" width="623" height="318"  >
 <submodels>
 <model name="Controleur" type="atomic" conditions="cond_Controleur" dynamics="dynControleur" observables="obs_DTE_Y" x="166" y="70" width="40" height="30" >
 </model>

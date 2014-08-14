@@ -28,7 +28,6 @@
 
 #include <boost/lexical_cast.hpp>
 
-#include <vle/gvle/DllDefines.hpp>
 #include <vle/value/Value.hpp>
 #include <vle/devs/Executive.hpp>
 #include <vle/value/Map.hpp>
@@ -45,7 +44,7 @@ extern "C" {
 #include "lunar.h"
 
 namespace vd = vle::devs;
-namespace vv = vle::value;
+//namespace vv = vle::value;
 namespace vp = vle::vpz;
 namespace vu = vle::utils;
 
@@ -56,7 +55,7 @@ namespace ibminsidegvle {
 
 class Controleur;
 
-class GVLE_API ControleurProxy {
+class ControleurProxy {
     Controleur* mControleur;
 
 public:

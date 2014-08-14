@@ -4,8 +4,8 @@
  */
 #include "ControleurProxy.hpp"
 #include "Controleur.hpp"
-#include <vle/devs/Executive.hpp>
-#include <vle/devs/ExecutiveDbg.hpp>
+//#include <vle/devs/Executive.hpp>
+//#include <vle/devs/ExecutiveDbg.hpp>
 #include <vle/vpz/Conditions.hpp>
 #include <map>
 #include <sstream>
@@ -22,7 +22,7 @@
 
 namespace vd = vle::devs;
 namespace vc = vle::vpz;
-namespace vv = vle::value;
+//namespace vv = vle::value;
 
 namespace vle {
 namespace gvle {
@@ -35,7 +35,7 @@ namespace ibminsidegvle {
 
 Controleur::Controleur(const vd::ExecutiveInit& mdl,
            const vd::InitEventList& events)
-: vd::Executive(mdl, events), mEvents(events)
+: GenericAgent(mdl, events), mEvents(events)
 {
     L = luaL_newstate();
     luaL_openlibs(L);
@@ -54,73 +54,46 @@ Controleur::Controleur(const vd::ExecutiveInit& mdl,
     else
         throw vle::utils::ModellingError("Text Script not found");
 
-	int errorCode = luaL_dostring(L, mScript.c_str());
-		
-    PrintErrorMessageOrNothing(errorCode);
-    
     if (events.exist("ScriptExec"))
         mScriptExec = events.getXml("ScriptExec");
     else
         throw vle::utils::ModellingError("Text ScriptExec not found");
+        
+    addEffect("doScript", boost::bind(&Controleur::doScript,this,_1));
 }
 
 Controleur::~Controleur() {}
 
-vd::Time Controleur::init(const vd::Time& t)
-{
-    time = t;
-    ta = vd::infinity;
-    return ta;
+
+void Controleur::agent_init() {
+    int errorCode = luaL_dostring(L, mScript.c_str());	
+    PrintErrorMessageOrNothing(errorCode);
+    
+    Effect update = doScriptEffect(mCurrentTime + 0.001, getModelName()+"toto");
+    mScheduler.addEffect(update);
 }
 
-void Controleur::internalTransition(const devs::Time& t)
-{
-    time = t;
-    if(mNextExternalEvent.size() != 0) {
-        ta = 0.0001;
-    } else {
-        ta = vd::infinity;
-    }
-    mNextExternalEvent.clear();
+void Controleur::agent_dynamic() {
+    Effect nextEffect = mScheduler.nextEffect();
+    applyEffect(nextEffect.getName(),nextEffect);
 }
 
-void Controleur::externalTransition(const vd::ExternalEventList& events,
-                        const vd::Time& t)
+void Controleur::agent_handleEvent(const Message& message) {
+    if (std::find(mDeadModel.begin(), mDeadModel.end(), getModelNameFromPort(message.getSender())) == mDeadModel.end())
+        putInStructure(getModelNameFromPort(message.getSender()), std::string(message.get("name")->toString().value()), new vv::Double(message.get("value")->toDouble()));
+}
+
+Effect Controleur::doScriptEffect(double t,const std::string& source)
 {
-    time = t;
-    ta = 0.0001;//std::numeric_limits<double>::epsilon();
-    updateData(events);
+    Effect effect(t,"doScript",source);
+    return effect;
+}
+
+void Controleur::doScript(const Effect& /*e*/) {
     int errorCode = luaL_dostring(L, mScriptExec.c_str());
     PrintErrorMessageOrNothing(errorCode);
-}
-
-vd::Time Controleur::timeAdvance() const
-{
-    if (mNextExternalEvent.size()>0 && ta == vd::infinity) {
-        return 0;
-    }
-    return ta;
-}
-
-void Controleur::output(const vd::Time& /*time*/,
-                    vd::ExternalEventList& output) const
-{
-    for (unsigned int i=0; i<mNextExternalEvent.size(); i++) {
-        output.push_back(mNextExternalEvent[i]);
-    }        
-}
-
-vv::Value* Controleur::observation(const vd::ObservationEvent& event) const {
-
-
-    lua_getglobal(L, event.getPortName().c_str());
-    if (!lua_isnumber(L, -1)) {
-        return 0;
-    }
-
-    double nb = lua_tonumber(L, -1);
-    lua_settop(L,0);
-    return new vv::Double(nb);
+    Effect update = doScriptEffect(mCurrentTime + 0.001, getModelName()+"toto");
+    mScheduler.update(update);
 }
 
 /**
@@ -160,6 +133,7 @@ void Controleur::delOneModel(std::string modelName) {
     removeInputPortExec(modelName);
     removeOutputPortExec(modelName);
     mData.erase(modelName);
+    mDeadModel.push_back(modelName);
 }
 
 /**
@@ -321,10 +295,14 @@ double Controleur::getData(std::string className, int n, std::string varName) {
 
 void Controleur::setModelValue(std::string className, int n, std::string varName, double varValue) {
     std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it = getItFromData(className, n);
-    vd::ExternalEvent* e = new vd::ExternalEvent(it->first + "_toPerturb");
+    /*vd::ExternalEvent* e = new vd::ExternalEvent(it->first + "_toPerturb");
     e->putAttribute("name", new vv::String(varName));
     e->putAttribute("value", new vv::Double(varValue));
-    mNextExternalEvent.push_back(e);
+    mNextExternalEvent.push_back(e);*/
+    Message m(getModelName(),it->first,"");
+    m.add("name",vv::String::create(varName));
+    m.add("value",vv::Double::create(varValue));
+    sendMessage(m);
 }
 
 std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator Controleur::getItFromData(std::string className, int n) {
@@ -368,7 +346,7 @@ int Controleur::countModelOfClass(std::string className) {
 }
 
 double Controleur::getTime() {
-    return time;
+    return mCurrentTime;
 }
 
 int Controleur::PrintErrorMessageOrNothing(int errorCode)
@@ -381,4 +359,4 @@ int Controleur::PrintErrorMessageOrNothing(int errorCode)
 
 }}}} // namespace vle gvle global ibminsidegvle
 
-DECLARE_EXECUTIVE_DBG(vle::gvle::global::ibminsidegvle::Controleur)
+DECLARE_EXECUTIVE(vle::gvle::global::ibminsidegvle::Controleur)

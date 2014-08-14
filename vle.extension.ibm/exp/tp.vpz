@@ -111,6 +111,7 @@ end]]>
 <views>
 <outputs>
 <output name="tpView" location="" format="local" package="vle.output"  plugin="file" />
+
 </outputs>
 <observables>
 <observable name="obs_Controleur" >
