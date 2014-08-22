@@ -44,7 +44,6 @@ extern "C" {
 #include "lunar.h"
 
 namespace vd = vle::devs;
-//namespace vv = vle::value;
 namespace vp = vle::vpz;
 namespace vu = vle::utils;
 
@@ -56,6 +55,8 @@ namespace ibminsidegvle {
 class Controleur;
 
 class ControleurProxy {
+    enum functionType { INIT, SINGLE, RECUR};
+    
     Controleur* mControleur;
 
 public:
@@ -76,6 +77,7 @@ public:
     int addGlobalVar(lua_State *L);
     int getModelName(lua_State *L);
     int getTime(lua_State *L);
+    int addEvent(lua_State *L);
 
     ~ControleurProxy();
 };

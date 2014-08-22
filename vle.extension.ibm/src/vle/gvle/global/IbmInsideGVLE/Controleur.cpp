@@ -4,8 +4,6 @@
  */
 #include "ControleurProxy.hpp"
 #include "Controleur.hpp"
-//#include <vle/devs/Executive.hpp>
-//#include <vle/devs/ExecutiveDbg.hpp>
 #include <vle/vpz/Conditions.hpp>
 #include <map>
 #include <sstream>
@@ -22,7 +20,6 @@
 
 namespace vd = vle::devs;
 namespace vc = vle::vpz;
-//namespace vv = vle::value;
 
 namespace vle {
 namespace gvle {
@@ -35,7 +32,7 @@ namespace ibminsidegvle {
 
 Controleur::Controleur(const vd::ExecutiveInit& mdl,
            const vd::InitEventList& events)
-: GenericAgent(mdl, events), mEvents(events)
+: GenericAgent(mdl, events), mEvents(events), mIndexEffect(0)
 {
     L = luaL_newstate();
     luaL_openlibs(L);
@@ -54,23 +51,14 @@ Controleur::Controleur(const vd::ExecutiveInit& mdl,
     else
         throw vle::utils::ModellingError("Text Script not found");
 
-    if (events.exist("ScriptExec"))
-        mScriptExec = events.getXml("ScriptExec");
-    else
-        throw vle::utils::ModellingError("Text ScriptExec not found");
-        
-    addEffect("doScript", boost::bind(&Controleur::doScript,this,_1));
+    addEffect("doScriptAt",boost::bind(&Controleur::doScriptAt,this,_1));
 }
 
 Controleur::~Controleur() {}
 
 
 void Controleur::agent_init() {
-    int errorCode = luaL_dostring(L, mScript.c_str());	
-    PrintErrorMessageOrNothing(errorCode);
-    
-    Effect update = doScriptEffect(mCurrentTime + 0.001, getModelName()+"toto");
-    mScheduler.addEffect(update);
+    execInit(mScript.c_str());
 }
 
 void Controleur::agent_dynamic() {
@@ -83,17 +71,43 @@ void Controleur::agent_handleEvent(const Message& message) {
         putInStructure(getModelNameFromPort(message.getSender()), std::string(message.get("name")->toString().value()), new vv::Double(message.get("value")->toDouble()));
 }
 
-Effect Controleur::doScriptEffect(double t,const std::string& source)
+Effect Controleur::doScriptEffectAt(double t,const std::string& source, std::string functionToExec, double frequency)
 {
-    Effect effect(t,"doScript",source);
+    Effect effect(t,"doScriptAt",source);
+    effect.add("script", vv::String::create(functionToExec));
+    effect.add("frequency", vv::Double::create(frequency));
     return effect;
 }
 
-void Controleur::doScript(const Effect& /*e*/) {
-    int errorCode = luaL_dostring(L, mScriptExec.c_str());
+void Controleur::doScriptAt(const Effect& e) {
+    int errorCode = luaL_dostring(L, e.get("script")->toString().value().c_str());
     PrintErrorMessageOrNothing(errorCode);
-    Effect update = doScriptEffect(mCurrentTime + 0.001, getModelName()+"toto");
+    
+    double t = e.get("frequency")->toDouble().value();
+    if (t != vd::infinity) {
+        t += mCurrentTime; 
+    }
+    Effect update = doScriptEffectAt(t, e.getOrigin(), e.get("script")->toString().value(), e.get("frequency")->toDouble().value());
+    
     mScheduler.update(update);
+}
+
+void Controleur::addEffectAt(double time, double frequency, std::string functionName) {
+    if (time == 0)
+        time = std::numeric_limits<double>::epsilon();
+    if (frequency <= 0)
+        throw utils::ArgError("The frequency have to be more than 0");
+    std::string idEffect = "Effect_"+ std::to_string(mIndexEffect);
+    mIndexEffect++;
+    std::string functionToExec = functionName + "()";
+    Effect effect = doScriptEffectAt(time, idEffect, functionToExec, frequency);
+    
+    mScheduler.addEffect(effect);
+}
+
+void Controleur::execInit(std::string script) {
+    int errorCode = luaL_dostring(L, script.c_str());
+    PrintErrorMessageOrNothing(errorCode);
 }
 
 /**
@@ -116,7 +130,7 @@ std::map <std::string, vv::Value*> Controleur::modifyParameter(std::string class
 	for (std::map <std::string, vv::Value*>::iterator it = variableToModify.begin(); it != variableToModify.end(); ++it) {
 	    vle::value::Value* d = c.firstValue(it->first).clone();
 	    variableModified.insert(std::pair<std::string, vv::Value*>(it->first, d));
-	    c.setValueToPort(it->first, *(it->second));//c_str()
+	    c.setValueToPort(it->first, *(it->second));
 	}
 	
 	return variableModified;
@@ -267,14 +281,6 @@ void Controleur::putInStructure(std::string modelName, std::string variable, vle
     
 }
 
-void Controleur::showData() {
-    for (std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it=mData.begin(); it!=mData.end(); ++it) {
-        for (std::map <std::string, vle::value::Value*>::iterator it2=it->second.begin(); it2!=it->second.end(); ++it2) {
-            std::cout << "clé " << it->first << " variable " << it2->first << " : " << *(it2->second) << std::endl;
-        }
-    }
-}
-
 void Controleur::updateData(const vd::ExternalEventList& events) {
     for (unsigned int i=0; i<events.size(); i++) {
         std::string s = events[i]->getPortName();
@@ -295,11 +301,11 @@ double Controleur::getData(std::string className, int n, std::string varName) {
 
 void Controleur::setModelValue(std::string className, int n, std::string varName, double varValue) {
     std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it = getItFromData(className, n);
-    /*vd::ExternalEvent* e = new vd::ExternalEvent(it->first + "_toPerturb");
-    e->putAttribute("name", new vv::String(varName));
-    e->putAttribute("value", new vv::Double(varValue));
-    mNextExternalEvent.push_back(e);*/
-    Message m(getModelName(),it->first,"");
+    setModelValue(it->first, varName, varValue);
+}
+
+void Controleur::setModelValue(std::string modelName, std::string varName, double varValue) {
+    Message m(getModelName(),modelName,"");
     m.add("name",vv::String::create(varName));
     m.add("value",vv::Double::create(varValue));
     sendMessage(m);

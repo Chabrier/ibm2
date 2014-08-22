@@ -72,6 +72,7 @@ public:
     int countModelOfClass(std::string className);
     
     void setModelValue(std::string className, int n, std::string varName, double varValue);
+    void setModelValue(std::string modelName, std::string varName, double varValue);
     
     /**
      * @brief Find the number associated to the variable
@@ -84,9 +85,9 @@ public:
     
     double getTime();
     
-    void doScript(const Effect& /*e*/);
+    void addEffectAt(double time, double frequency, std::string script);
     
-    Effect doScriptEffect(double t,const std::string& source);
+    void execInit(std::string script);
 
 protected:
     /** @brief Pure virtual agent functions. Modeler must override them */
@@ -103,6 +104,7 @@ private:
 	std::string mScriptExec;
 	std::map <std::string, std::map <std::string, vle::value::Value*> > mData;
 	std::map <std::string, int> mNameNumber;
+	int mIndexEffect;
 	double ta;
 	std::vector <vd::ExternalEvent*> mNextExternalEvent;
 	std::vector <std::string> mDeadModel;
@@ -158,19 +160,45 @@ private:
      */
     void removeOutputPortExec(std::string modelName);
     
+    /**
+     * @brief Put in the data struture the parameters, if already exist update them.
+     *
+     */
     void putInStructure(std::string modelName, std::string variable, vle::value::Value* value);
     
-    void showData();
-    
+    /**
+     * @brief find the model from the port name
+     * 
+     * @param std::string port name
+     *
+     * @return std::string model name
+     */
     std::string getModelNameFromPort(std::string s);
     
+    /**
+     * @brief update the data structure from the event list
+     *
+     * @param const vd::ExternalEventList& events
+     */
     void updateData(const vd::ExternalEventList& events);
     
     std::map <std::string, vv::Value*> modifyParameter(std::string className, std::map <std::string, vv::Value*> variableToModify);
     
+    /**
+     * @brief Compare the model name and the class name, if the model belongs to the class name, return true, false otherwise
+     *
+     * @param std::string modelName
+     * @param std::string className
+     *
+     * @return bool
+     */
     bool compareModelClass(std::string modelName, std::string className);
     
     std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator getItFromData(std::string className, int n);
+    
+    void doScriptAt(const Effect& e);
+    
+    Effect doScriptEffectAt(double t,const std::string& source, std::string functionName, double frequency);
     
     int PrintErrorMessageOrNothing(int ErrorCode);
     

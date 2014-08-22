@@ -25,11 +25,7 @@
 */
 #include "ControleurProxy.hpp"
 #include "Controleur.hpp"
-/*namespace vd = vle::devs;
-namespace vv = vle::value;
-namespace vp = vle::vpz;
-namespace vu = vle::utils;
-*/
+
 namespace vle {
 namespace gvle {
 namespace global {
@@ -46,6 +42,7 @@ Lunar<ControleurProxy>::RegType ControleurProxy::methods[] = {
     LUNAR_DECLARE_METHOD(ControleurProxy, setModelValue),
     LUNAR_DECLARE_METHOD(ControleurProxy, getModelName),
     LUNAR_DECLARE_METHOD(ControleurProxy, getTime),
+    LUNAR_DECLARE_METHOD(ControleurProxy, addEvent),
     {0,0} };
     
     
@@ -129,11 +126,18 @@ int ControleurProxy::getNumber(lua_State *L) {
 }
 
 int ControleurProxy::setModelValue(lua_State *L) {
-    std::string className (luaL_checkstring(L, 1));
-    int i = luaL_checknumber(L, 2);
-    std::string varName (luaL_checkstring(L, 3));
-    int varValue = luaL_checknumber(L, 4);
-    mControleur->setModelValue(className, i, varName, varValue);
+    if (lua_gettop(L) == 4) {
+        std::string className (luaL_checkstring(L, 1));
+        int i = luaL_checknumber(L, 2);
+        std::string varName (luaL_checkstring(L, 3));
+        int varValue = luaL_checknumber(L, 4);
+        mControleur->setModelValue(className, i, varName, varValue);
+    } else {
+        std::string modelName (luaL_checkstring(L, 1));
+        std::string varName (luaL_checkstring(L, 2));
+        int varValue = luaL_checknumber(L, 3);
+        mControleur->setModelValue(modelName, varName, varValue);
+    }
     return 0;
 }
 
@@ -148,6 +152,20 @@ int ControleurProxy::getModelName(lua_State *L) {
 int ControleurProxy::getTime(lua_State *L) {
     lua_pushnumber(L, mControleur->getTime());
     return 1;
+}
+
+int ControleurProxy::addEvent(lua_State *L) {
+    std::string type = luaL_checkstring(L, 1);
+    if (type == "INIT") {
+        std::string script (luaL_checkstring(L, 2));
+        script += "()";
+        mControleur->execInit(script);
+    } else if (type == "SINGLE") {
+        mControleur->addEffectAt(luaL_checknumber(L, 2), vd::infinity, luaL_checkstring(L, 3));
+    } else if (type == "RECUR") {
+        mControleur->addEffectAt(luaL_checknumber(L, 2), luaL_checknumber(L, 3), luaL_checkstring(L, 4));
+    }
+    return 0;
 }
 
 }}}} // namespace vle gvle global ibminsidegvle

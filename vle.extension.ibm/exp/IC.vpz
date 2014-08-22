@@ -36,12 +36,53 @@
 <condition name="cond_Controleur" >
  <port name="Script" >
 <xml>
-<![CDATA[for i=1,10,1 do
-	ibm:addModelWithParam(1,"Y","KG",0.005+(0.05-0.005)*math.random());
-end
-lastMature = "";
+<![CDATA[lastMature = "";
 poidsMax = 0;
-degenerescence = 0; -- Pour optimisation]]>
+degenerescence = 0; -- Pour optimisation
+ibm:addModelWithParam(1,"Y","KG",0.005+(0.05-0.005)*math.random());
+function birth ()
+        for i=1,10,1 do
+                ibm:addModelWithParam(1,"Y","KG",0.005+(0.05-0.005)*math.random());
+        end
+end
+
+function dyn ()
+if degenerescence == 0 then -- Pour optimiser
+for i=1, ibm:getNumber("Y"), 1 do
+        poidDeI = ibm:getModelValue("Y",i, "masse");
+        if  poidDeI >= poidsMax and ibm:getModelValue("Y",i, "maturing") == 1 and ibm:getModelValue("Y",i,"age") <= 30 then
+                poidsMax = poidDeI;
+                lastMature = ibm:getModelName("Y",i);
+        end
+end
+end
+a = {};
+k=1;
+for i=1,  ibm:getNumber("Y"), 1 do
+        if ibm:getModelValue("Y",i, "maturing") == 1 and ibm:getModelValue("Y",i,"masse") < poidsMax and ibm:getModelValue("Y",i,"age") <= 32 and ibm:getModelValue("Y",i,"age") > 29 then
+                degenerescence = 1;
+                ibm:setModelValue("Y",i,"maturing",0.0);
+        elseif ibm:getModelValue("Y",i, "maturing") ~= 1  and  ibm:getModelValue("Y",i, "masse") <= 0.1 then -- Check celles qui doivent mourir
+                a[k] =ibm:getModelName("Y",i);
+                k = k + 1;
+        end
+end
+
+--Gestion des morts
+for i=1, k-1, 1 do
+        ibm:delModel(a[i]);
+end
+-- Générer naissance
+if ibm:getModelValue(lastMature, "masse") >= 0.99 then
+        birth()
+        lastMature = "";
+        poidsMax = 0;
+        degenerescence = 0;
+end
+end
+ibm:addEvent("INIT","birth");
+ibm:addEvent("SINGLE",1,"birth");
+ibm:addEvent("RECUR",20, 1,"dyn");]]>
 </xml>
 </port>
  <port name="ScriptExec" >
@@ -120,7 +161,7 @@ end]]>
 <double>0.000000000000000</double>
 </port>
  <port name="duration" >
-<double>200.000000000000000</double>
+<double>100.000000000000000</double>
 </port>
 </condition>
 </conditions>

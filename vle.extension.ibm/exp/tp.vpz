@@ -35,13 +35,27 @@
 <condition name="cond_Controleur" >
  <port name="Script" >
 <xml>
-<![CDATA[-- 1.Réplication simple
---ibm:addModel(5,"M");
--- 2.Réplication en changeant p1
-for i=0.08, 0.045, -0.008 do
-	ibm:addModelWithParam(1,"M", "p1", i);
+<![CDATA[function init ()
+	for i=0.08, 0.045, -0.008 do
+		ibm:addModelWithParam(1,"M", "p1", i);
+	end
+	nbIndiv = 5;
 end
-nbIndiv = 5;]]>
+
+function exec ()
+	acc = 0;
+	for i=1, nbIndiv, 1 do
+		acc = acc + ibm:getModelValue("M", i, "C2");
+	end
+	for i=1,ibm:getNumber("M"),1 do
+		if ibm:getModelValue("M", i, "C2") >= 0.35 then
+			ibm:setModelValue("M", i, "DSAT", 5);
+		end
+	end
+end
+
+ibm:addEvent("INIT", "init");
+ibm:addEvent("RECUR",0.01, 0.1,"exec");]]>
 </xml>
 </port>
  <port name="ScriptExec" >
@@ -102,8 +116,26 @@ end]]>
 <condition name="simulation_engine" >
  <port name="begin" >
 <double>0.000000000000000</double>
+<double>0.000000000000000</double>
+<double>0.000000000000000</double>
+<double>0.000000000000000</double>
+<double>0.000000000000000</double>
+<double>0.000000000000000</double>
+<double>0.000000000000000</double>
+<double>0.000000000000000</double>
+<double>0.000000000000000</double>
+<double>0.000000000000000</double>
 </port>
  <port name="duration" >
+<double>100.000000000000000</double>
+<double>100.000000000000000</double>
+<double>100.000000000000000</double>
+<double>100.000000000000000</double>
+<double>100.000000000000000</double>
+<double>100.000000000000000</double>
+<double>100.000000000000000</double>
+<double>100.000000000000000</double>
+<double>100.000000000000000</double>
 <double>100.000000000000000</double>
 </port>
 </condition>
