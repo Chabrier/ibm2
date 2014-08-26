@@ -266,7 +266,6 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     }
     
     void onApplyNewName() {
-        std::cout << "apply Dialog" << std::endl;
         std::string eventName = mEntryName->get_text();
         if (isValidName(eventName) && mScriptsCopy.find(eventName) == mScriptsCopy.end() && std::find(mPortToRemove.begin(), mPortToRemove.end(), eventName) == mPortToRemove.end()) {
             mDialog->hide();
@@ -275,7 +274,6 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     }
     
     void onCancelNewName() {
-        std::cout << "cancel Dialog" << std::endl;
         mDialog->hide();
     }
     
@@ -306,7 +304,6 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         vpz::Condition& cond = mGVLE->getModeling()->experiment().conditions().get("cond_" + NAME_CONTROLER);
         for (std::map < std::string, value::Set* >::iterator it = cond.begin(); it!=cond.end(); it++) {
             if (it->first != "Script" && cond.firstValue(it->first).isXml()) {
-                std::cout << "port " << it->first << " " << std::endl;
                 createListViewRow(it->first, cond.firstValue(it->first).toXml().value());            
             }
         }
@@ -317,7 +314,6 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         Gtk::ListBoxRow* toRemove = mListBox->get_selected_row();
         if (toRemove) {
             std::string port = toRemove->get_name();
-            std::cout << "on remove script " << port << std::endl;
             mPortToRemove.push_back(port);
             mScriptsCopy.erase(port);
             mListBox->remove(*toRemove);
@@ -335,7 +331,6 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     
     void saveScripts() {
         for(std::map<std::string, Gtk::TextView*>::iterator it = mScriptsCopy.begin(); it!= mScriptsCopy.end(); it++) {
-            std::cout << it->first << std::endl;
             Glib::RefPtr<Gtk::TextBuffer> buffer = it->second->get_buffer();
             saveScriptsOnCondition(it->first, buffer->get_text());
         }
@@ -343,9 +338,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     
     void removePort() {
         vpz::Condition& cond = mGVLE->getModeling()->experiment().conditions().get("cond_" + NAME_CONTROLER);
-        std::cout << "remove port, nb " << mPortToRemove.size() << std::endl;
         for (unsigned int i=0; i<mPortToRemove.size(); i++) {
-            std::cout << "remove " << mPortToRemove[i] << std::endl;
             cond.del(mPortToRemove[i]);
         }
     }

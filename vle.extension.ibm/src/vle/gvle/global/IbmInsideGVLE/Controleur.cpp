@@ -87,9 +87,10 @@ Effect Controleur::doScriptEffectAt(double t,const std::string& source, std::str
 }
 
 void Controleur::doScriptAt(const Effect& e) {
-    int errorCode = luaL_dostring(L, e.get("script")->toString().value().c_str());
+    execInit(e.get("script")->toString().value());
+    /*int errorCode = luaL_dostring(L, e.get("script")->toString().value().c_str());
     PrintErrorMessageOrNothing(errorCode);
-    
+    */
     double t = e.get("frequency")->toDouble().value();
     if (t != vd::infinity) {
         t += mCurrentTime; 
@@ -376,7 +377,7 @@ int Controleur::PrintErrorMessageOrNothing(int errorCode)
 {
    if (errorCode != 0) {
 		throw utils::ArgError(fmt("Lua Error Code: `%1%' ") % lua_tostring(L, -1));
-		}
+	}
    return errorCode;
 }
 

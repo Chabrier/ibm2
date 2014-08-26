@@ -2,3 +2,5 @@
 buildvle
 *.o
 output
+*.dat
+*.tex.swp

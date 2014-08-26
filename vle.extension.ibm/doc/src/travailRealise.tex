@@ -23,7 +23,7 @@ Il se crée automatiquement à la première ouverture du plugin IBM. Ces capacit
 Il possède la capacité d'une dynamique DEVS, recevoir des évènements par ses ports d'entrées, envoyer des évènements par ses ports de sorties, exécuter un programme interne à chaque pas de temps (transition interne), gérer les évènements externes (transition externe). Voici un résumé de sa dynamique. \\
 \begin{minipage}{\linewidth}% to keep image and caption on one page
 \makebox[\linewidth]{%        to center the image
-  \includegraphics [width=80mm]{images/dynamiqueControleur.png}}
+  \includegraphics [width=100mm]{images/dynamiqueControleur.png}}
 \captionof{figure}{Dynamique du controleur}%\label{visina8}%      only if needed  
 \end{minipage}
 
@@ -41,10 +41,14 @@ Ce petit programme est une chaine de caractère exécutée par le Controleur au 
 Le Controleur hérite également de GenericAgent, ce qui lui donne accès à une sorte de calendrier. Il peut ainsi créer des évènements, les enmagasiner et exécuter les scripts envoyés par ces évènements à la bonne date.
 
 \section{GUI}
-Une interface simple a été développée pour l'utilisateur. Deux champs, la colonne de droite en vert qui liste toutes les classes d'individu présentes dans le Vpz ouvert et en rouge la zone de texte permettant l'écriture du script lua. \\
-En survolant le nom d'une classe une infobulle s'ouvre pour afficher la liste des paramètres et compartiments de la classe en question, ce qui permet à l'utilisateur de programmer plus facilement. Il a directement accès à toutes les variables potentiellement modifiable au cours de la simulation.\\
+Une interface simple a été développée pour l'utilisateur. Trois champs principaux en vert, rouge et les nuances de bleu ci-dessous.\\
+La colonne de droite en vert qui liste toutes les classes d'individu présentes dans le Vpz ouvert. En survolant le nom d'une classe une infobulle s'ouvre pour afficher la liste des paramètres et compartiments de la classe en question, ce qui permet à l'utilisateur de programmer plus facilement. Il a directement accès à toutes les variables potentiellement modifiables au cours de la simulation.\\
 Par un clique-droit sur la colonne des classes, un menu déroulant s'affiche où l'utilisateur peut décider de créer une nouvelle classe, modifier la classe sélectionnée ou la supprimer.\\
-Ici l'exemple du tp Modelmaker sur le remplissage et vidange des compartiments : \\
+En rouge la zone de texte permettant l'écriture du script lua qui peut être des appels à évènements, des fonctions et/ou des initialisations de variables. Ce script n'est appelé qu'une fois en début de simulation.\\
+En bleu, les évènements, on peut en ajouter grâce au bouton ``+'' sur le coté gauche ou en supprimer grâce au bonton ``-''. Le nom de l'évènement est en évidence après chaque flèche et le script correspondant est juste en dessous.\\
+
+Ici l'exemple du tp Modelmaker sur le remplissage et vidange des compartiments.
+Deux évènements, ``exec'' et ``init'', ``init'' est appelé lors de l'initialisation et le script de l'évènement ``exec'' tous les 0.1 à partir de la date 0.01.
 
 \begin{minipage}{\linewidth}% to keep image and caption on one page
 \makebox[\linewidth]{%        to center the image

@@ -68,26 +68,13 @@ int ControleurProxy::addModelWithParam(lua_State *L) {
     std::string varName = "";
     
     for (int i = 3; i <= top; i++) {
-        int t = lua_type(L, i);
-        vv::Value* varValue;
-        switch (t) {
-          case LUA_TSTRING: { 
+        if (i%2 != 0) {
             varName = lua_tostring(L, i);
-            break;
-            }
-          case LUA_TNUMBER:{
+        } else {
             double d = lua_tonumber(L, i);
-            varValue = new vv::Double(d);
-            break;
-            }
-          default:
-            printf("%s", lua_typename(L, t));
-            break;
-        }
-        
-        if (i%2 == 0) {
+            vv::Value* varValue = new vv::Double(d);
             variableToModify.insert(std::pair<std::string, vle::value::Value* >(varName, varValue));
-        }
+        }        
     }
     mControleur->addModelWith(luaL_checknumber(L, 1), luaL_checkstring(L, 2), variableToModify);
     return 0;
