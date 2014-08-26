@@ -45,9 +45,16 @@ Controleur::Controleur(const vd::ExecutiveInit& mdl,
 
     Lunar<ControleurProxy>::push(L, &mCP);
     lua_setglobal(L, "ibm");
-
+    mScript = "";
+    for (vv::MapValue::const_iterator it = events.begin(); it!=events.end(); it++) {
+        if (it->first != "Script" && it->second->isXml()) {
+            mScript += "function " + it->first + " ()\n" + it->second->toXml().value() + "\nend\n";
+        }
+    }
+    
+    
     if (events.exist("Script"))
-        mScript = events.getXml("Script");
+        mScript += events.getXml("Script");
     else
         throw vle::utils::ModellingError("Text Script not found");
 
@@ -108,6 +115,16 @@ void Controleur::addEffectAt(double time, double frequency, std::string function
 void Controleur::execInit(std::string script) {
     int errorCode = luaL_dostring(L, script.c_str());
     PrintErrorMessageOrNothing(errorCode);
+}
+
+vv::Value* Controleur::observation(const vd::ObservationEvent& event) const {
+    lua_getglobal(L, event.getPortName().c_str());
+    if (!lua_isnumber(L, -1)) {
+        return 0;
+    }
+    double nb = lua_tonumber(L, -1);
+    lua_settop(L,0);
+    return new vv::Double(nb);
 }
 
 /**

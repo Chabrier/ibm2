@@ -112,6 +112,8 @@ private:
 	lua_State *L;
     ControleurProxy mCP;
     
+    vv::Value* observation(const vd::ObservationEvent& event) const;
+    
     std::string addOneModel(std::string className);
     
     /**

@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.3.0.dtd">
 <vle_project version="1.3.0" date="2014-Aug-06 12:34:59" author="Genevieve Cirera">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="475" height="344"  >
+<model name="Top model" type="coupled" x="0" y="0" width="475" height="480"  >
 <submodels>
 <model name="Controleur" type="atomic" conditions="cond_Controleur" dynamics="dynControleur" observables="obs_Controleur" x="50" y="50" width="40" height="30" >
 </model>
@@ -35,30 +35,11 @@
 <condition name="cond_Controleur" >
  <port name="Script" >
 <xml>
-<![CDATA[function init ()
-	for i=0.08, 0.045, -0.008 do
-		ibm:addModelWithParam(1,"M", "p1", i);
-	end
-	nbIndiv = 5;
-end
-
-function exec ()
-	acc = 0;
-	for i=1, nbIndiv, 1 do
-		acc = acc + ibm:getModelValue("M", i, "C2");
-	end
-	for i=1,ibm:getNumber("M"),1 do
-		if ibm:getModelValue("M", i, "C2") >= 0.35 then
-			ibm:setModelValue("M", i, "DSAT", 5);
-		end
-	end
-end
-
-ibm:addEvent("INIT", "init");
+<![CDATA[ibm:addEvent("INIT", "init");
 ibm:addEvent("RECUR",0.01, 0.1,"exec");]]>
 </xml>
 </port>
- <port name="ScriptExec" >
+ <port name="exec" >
 <xml>
 <![CDATA[acc = 0;
 for i=1, nbIndiv, 1 do
@@ -69,6 +50,15 @@ for i=1,ibm:getNumber("M"),1 do
 		ibm:setModelValue("M", i, "DSAT", 5);
 	end
 end]]>
+</xml>
+</port>
+ <port name="init" >
+<xml>
+<![CDATA[-- Write you code for the event here
+for i=0.08, 0.045, -0.008 do
+	ibm:addModelWithParam(1,"M", "p1", i);
+end
+nbIndiv = 5;]]>
 </xml>
 </port>
 </condition>
@@ -92,19 +82,6 @@ end]]>
 <map><key name="C1"><double>1.000000000000000</double></key><key name="C2"><double>0.000000000000000</double></key><key name="C3"><double>0.000000000000000</double></key><key name="DSAT"><double>0.000000000000000</double></key></map>
 </port>
 </condition>
-<condition name="cond_DTE_MZ" >
- <port name="variables" >
-<map></map>
-</port>
-</condition>
-<condition name="cond_DTE_MZ_integration" >
- <port name="method" >
-<string>euler</string>
-</port>
- <port name="method-parameters" >
-<map><key name="timestep"><double>0.001000000000000</double></key></map>
-</port>
-</condition>
 <condition name="cond_DTE_M_integration" >
  <port name="method" >
 <string>euler</string>
@@ -116,26 +93,8 @@ end]]>
 <condition name="simulation_engine" >
  <port name="begin" >
 <double>0.000000000000000</double>
-<double>0.000000000000000</double>
-<double>0.000000000000000</double>
-<double>0.000000000000000</double>
-<double>0.000000000000000</double>
-<double>0.000000000000000</double>
-<double>0.000000000000000</double>
-<double>0.000000000000000</double>
-<double>0.000000000000000</double>
-<double>0.000000000000000</double>
 </port>
  <port name="duration" >
-<double>100.000000000000000</double>
-<double>100.000000000000000</double>
-<double>100.000000000000000</double>
-<double>100.000000000000000</double>
-<double>100.000000000000000</double>
-<double>100.000000000000000</double>
-<double>100.000000000000000</double>
-<double>100.000000000000000</double>
-<double>100.000000000000000</double>
 <double>100.000000000000000</double>
 </port>
 </condition>
@@ -163,8 +122,6 @@ end]]>
 <port name="C3" />
 
 <port name="DSAT" />
-
-<port name="acc" />
 
 <port name="f1" />
 

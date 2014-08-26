@@ -1,0 +1,65 @@
+\documentclass[a4paper,11pt,final]{report}
+\usepackage[utf8]{inputenc} % Prendre en compte les caractères accentués
+\usepackage[francais]{babel} % Prendre en compte les particularités de la typographie française.
+\usepackage{geometry}         % marges
+\usepackage{graphicx}         % images
+\usepackage{setspace}
+\usepackage[french]{varioref}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{caption}
+\usepackage{enumitem}
+
+\titlespacing{\chapter}{0pt}{*-5}{*5}
+\titlespacing{\section}{0pt}{*2}{*2}
+\titleformat{\chapter}[hang]{\bf\huge}{\thechapter}{2pc}{}
+%\titleformat{\chapter}[hang]{\bf\huge}{\thechapter}{14pt}{\LARGE}
+\renewcommand{\baselinestretch}{1.2}
+\setlength{\parskip}{1.5ex plus .4ex minus .4ex}
+\setlength{\parindent}{15pt} 
+
+\makeatletter
+% subsubsubsection
+\newcounter{subsubsubsection}[subsubsection] 
+\renewcommand\thesubsubsubsection{\@roman\c@subsubsubsection}
+\newcommand\subsubsubsection{\@startsection{subsubsubsection}{4}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\normalfont\small\bfseries}}
+\newcommand*\l@subsubsubsection{\@dottedtocline{3}{5.2em}{1em}}
+\newcommand*{\subsubsubsectionmark}[1]{}
+\setcounter{secnumdepth}{2}
+\makeatother
+
+\begin{document}
+\sloppy % Justification moins stricte : des mots ne dépasseront pas des paragraphes
+
+\include{title} 
+
+\include{remerciements}
+
+\tableofcontents % Table des matières
+
+\include{introduction}
+
+\include{context}
+
+\include{travailPropose}
+
+\include{travailRealise} 
+
+\chapter{Conclusion}
+
+\chapter{Bibliographie}
+citer les documentations de références, les
+articles lus
+
+\chapter{Abstract}
+résumé d'une dizaine de ligne en anglais
+%\include{annexe}
+
+\appendix
+
+\end{document}
