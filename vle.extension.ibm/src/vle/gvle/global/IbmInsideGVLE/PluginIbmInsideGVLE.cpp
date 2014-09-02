@@ -222,18 +222,6 @@ public:
         saveScripts();
         removePort();
         
-        remove();
-        saveScriptOnCondition();
-        mGVLE->getModeling()->setModified(true);
-        
-        
-
-        mWindow->hide();
-        mGVLE->redrawModelClassBox();
-        mGVLE->onSave();
-    }
-    
-    void remove() {
         std::set<std::string>::const_iterator
             sit (mDeletedClasses.begin()),
             send(mDeletedClasses.end());
@@ -243,7 +231,16 @@ public:
 std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle::utils::PKG_SOURCE);
             std::remove(fileToRemove.c_str());
         }
-
+        
+        clean();
+        mGVLE->getModeling()->setModified(true);
+        
+        mWindow->hide();
+        mGVLE->redrawModelClassBox();
+        mGVLE->onSave();
+    }
+    
+    void clean() {
         mDeletedClasses.clear();
         mClassesCopy.clear();
         
@@ -256,7 +253,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
      */
     void onCancel()
     {
-        remove();
+        clean();
         mWindow->hide();
     }
     
@@ -278,11 +275,6 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     }
     
     void createListViewRow(std::string title, std::string content) {
-        Gtk::TextView* t = addListViewRow(title, content);
-        mScriptsCopy.insert(std::pair<std::string, Gtk::TextView*> (title, t));
-    }
-    
-    Gtk::TextView* addListViewRow(std::string title, std::string content) {
         Glib::RefPtr<Gtk::TextBuffer> buffer = Gtk::TextBuffer::create();
         buffer->set_text(content);
         Gtk::TextView* newTextView = new Gtk::TextView(buffer);
@@ -297,7 +289,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         l->add(*e);
         l->show_all();
         mListBox->append(*l);
-        return newTextView;
+        mScriptsCopy.insert(std::pair<std::string, Gtk::TextView*> (title, newTextView));
     }
     
     void fillScripts() {
@@ -308,7 +300,6 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
             }
         }
     }
-    
     
     void onRemoveScript() {
         Gtk::ListBoxRow* toRemove = mListBox->get_selected_row();
@@ -334,6 +325,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
             Glib::RefPtr<Gtk::TextBuffer> buffer = it->second->get_buffer();
             saveScriptsOnCondition(it->first, buffer->get_text());
         }
+        saveScriptOnCondition();
     }
     
     void removePort() {

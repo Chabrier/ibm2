@@ -43,6 +43,7 @@ Lunar<ControleurProxy>::RegType ControleurProxy::methods[] = {
     LUNAR_DECLARE_METHOD(ControleurProxy, getModelName),
     LUNAR_DECLARE_METHOD(ControleurProxy, getTime),
     LUNAR_DECLARE_METHOD(ControleurProxy, addEvent),
+    LUNAR_DECLARE_METHOD(ControleurProxy, getParam),
     {0,0} };
     
     
@@ -51,12 +52,7 @@ void ControleurProxy::setControleur ( Controleur* controleur) {mControleur = con
 ControleurProxy::~ControleurProxy() { printf("deleted GodProxy (%p)\n", this); }
 
 int ControleurProxy::addModel(lua_State *L) {
-    int nbi = 0;
-    if (lua_type(L, 1) == LUA_TNUMBER) {
-        nbi = luaL_checknumber(L, 1);
-    } else {
-        nbi = mControleur->readNumber(luaL_checkstring(L, 1));
-    }
+    int nbi = getValueFromParam(L, 1);
     std::string si (luaL_checkstring(L, 2));
     mControleur->addInstruction(nbi, si);
     return 0;
@@ -71,12 +67,12 @@ int ControleurProxy::addModelWithParam(lua_State *L) {
         if (i%2 != 0) {
             varName = lua_tostring(L, i);
         } else {
-            double d = lua_tonumber(L, i);
-            vv::Value* varValue = new vv::Double(d);
+            vv::Value* varValue = new vv::Double(getValueFromParam(L, i));
             variableToModify.insert(std::pair<std::string, vle::value::Value* >(varName, varValue));
         }        
     }
-    mControleur->addModelWith(luaL_checknumber(L, 1), luaL_checkstring(L, 2), variableToModify);
+    int nbi = getValueFromParam(L, 1);
+    mControleur->addModelWith(nbi, luaL_checkstring(L, 2), variableToModify);
     return 0;
 }
 
@@ -117,12 +113,12 @@ int ControleurProxy::setModelValue(lua_State *L) {
         std::string className (luaL_checkstring(L, 1));
         int i = luaL_checknumber(L, 2);
         std::string varName (luaL_checkstring(L, 3));
-        int varValue = luaL_checknumber(L, 4);
+        double varValue = getValueFromParam(L, 4);
         mControleur->setModelValue(className, i, varName, varValue);
     } else {
         std::string modelName (luaL_checkstring(L, 1));
         std::string varName (luaL_checkstring(L, 2));
-        int varValue = luaL_checknumber(L, 3);
+        double varValue = getValueFromParam(L, 3);
         mControleur->setModelValue(modelName, varName, varValue);
     }
     return 0;
@@ -153,6 +149,22 @@ int ControleurProxy::addEvent(lua_State *L) {
         mControleur->addEffectAt(luaL_checknumber(L, 2), luaL_checknumber(L, 3), luaL_checkstring(L, 4));
     }
     return 0;
+}
+
+int ControleurProxy::getParam(lua_State *L) {
+    double d = mControleur->readNumber(luaL_checkstring(L, 1));
+    lua_pushnumber(L, d);
+    return 1;
+}
+
+double ControleurProxy::getValueFromParam(lua_State *L, int i) {
+    double d = 0;
+    if (lua_type(L, i) == LUA_TNUMBER){
+        d = lua_tonumber(L, i);
+    } else {
+        d = mControleur->readNumber(luaL_checkstring(L, i));
+    }
+    return d;
 }
 
 }}}} // namespace vle gvle global ibminsidegvle

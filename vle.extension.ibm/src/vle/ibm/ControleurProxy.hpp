@@ -78,6 +78,8 @@ public:
     int getModelName(lua_State *L);
     int getTime(lua_State *L);
     int addEvent(lua_State *L);
+    int getParam(lua_State *L);
+    double getValueFromParam(lua_State *L, int i);
 
     ~ControleurProxy();
 };

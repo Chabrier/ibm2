@@ -32,8 +32,9 @@ namespace ibminsidegvle {
 
 Controleur::Controleur(const vd::ExecutiveInit& mdl,
            const vd::InitEventList& events)
-: GenericAgent(mdl, events), mEvents(events), mIndexEffect(0)
+: GenericAgent(mdl, events), mIndexEffect(0)
 {
+    mEvents = new vv::Map(events);
     L = luaL_newstate();
     luaL_openlibs(L);
 
@@ -88,9 +89,6 @@ Effect Controleur::doScriptEffectAt(double t,const std::string& source, std::str
 
 void Controleur::doScriptAt(const Effect& e) {
     execInit(e.get("script")->toString().value());
-    /*int errorCode = luaL_dostring(L, e.get("script")->toString().value().c_str());
-    PrintErrorMessageOrNothing(errorCode);
-    */
     double t = e.get("frequency")->toDouble().value();
     if (t != vd::infinity) {
         t += mCurrentTime; 
@@ -121,6 +119,7 @@ void Controleur::execInit(std::string script) {
 vv::Value* Controleur::observation(const vd::ObservationEvent& event) const {
     lua_getglobal(L, event.getPortName().c_str());
     if (!lua_isnumber(L, -1)) {
+        lua_settop(L,0);
         return 0;
     }
     double nb = lua_tonumber(L, -1);
@@ -175,9 +174,20 @@ void Controleur::delOneModel(std::string modelName) {
  *
  * @return int 
  */
-int Controleur::readNumber(std::string nb) {
-    if (mEvents.exist(nb))
-        return mEvents.getInt(nb);
+double Controleur::readNumber(std::string nb) {
+    if (mEvents->exist(nb)) {
+        switch(mEvents->get(nb)->getType()) {
+            case vv::Value::INTEGER :
+                return static_cast<double>(mEvents->getInt(nb));
+                break;
+            case vv::Value::DOUBLE :
+                return mEvents->getDouble(nb);
+                break;
+            default :
+                throw utils::ArgError(fmt("Type of variable `%1%' not an int or double") % nb);   
+        }
+        
+    }
     
     throw utils::ArgError(fmt("Variable `%1%' not found ") % nb);
 }
