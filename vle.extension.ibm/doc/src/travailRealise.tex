@@ -2,17 +2,30 @@
 \setlength{\parskip}{2.5ex plus .4ex minus .4ex}
 
 \section{Architecture}
-Afin de répondre au besoin, il a été décidé de développer un plugin global appelé vle.extension.ibm.\\
+\subsection{Plugin global}
+Afin de répondre au besoin, il a été décidé de développer un plugin global dans un paquet appelé vle.extension.ibm.\\
+Un plugin global est une extension de logiciel permettant de mettre à disposition de l'utilisateur des fonctionnalités additionnelles. Cette extension se différencie d'un plugin classique par le fait qu'il ait accès au logiciel entier, à toutes ses informations, fonctionnalités...\\
+Cependant, faire un plugin global a obligé quelques modifications des fichiers sources du logiciel. En effet, certaines informations étaient privées et il était nécessaire d'y accéder. Ce qui m'a obligé à bien comprendre la structure du logiciel grâce aux éléments que j'avais en main, fichiers sources et documentation, afin d'y insérer les bonnes méthodes correspondantes à mes besoins.
+
+\subsection{Arguments}
 Les raisons de cette décision sont variées. L'extension a besoin d'accéder à toutes les classes d'individu déjà créées par l'utilisateur précedemment dans le Vpz et qu'il puisse en créer de nouvelles depuis le plugin, afin que le clonage d'individu soit faisable. Le plugin a aussi besoin d'avoir accès au Vpz entier (conditions expérimentales, ports,...) et donc de VLE, car il intéragit avec ce dernier lors de la simulation.\\
 De plus, une interface graphique du plugin devait être développée afin d'en faciliter l'utilisation, c'est pourquoi l'accès à GVLE\footnote{GUI pour VLE} était également indispensable.\\
 
 Le plugin développé permet le lancement du plugin Forrester afin de créer les classes d'individu et est en lien avec un proxy permettant la communication entre le langage de script proposé à l'utilisateur et le controleur.\\
 
-un schéma présentant ou se trouve quoi!!!
+VLE est un logiciel fonctionnant grâce à des paquets, ils peuvent contenir un projet, un Vpz, une extension... Par exemple, le plugin Forrester fait parti du paquet vle.forrester, le plugin IBM est dans le paquet vle.extension.ibm.\\
+
+\noindent\begin{minipage}{\linewidth}% to keep image and caption on one page
+\makebox[\linewidth]{%        to center the image
+  \includegraphics [width=150mm]{images/architecture.png}}
+\captionof{figure}{Architecture du système}%\label{visina8}%      only if needed  
+\end{minipage}
+
+Ici, deux paquets, vle.extension.ibm en bleu et le paquet de projet de l'utilisateur en jaune. Le plugin IBM offre l'interface d'ibm où l'utilisateur décrit ses besoins puis il met en place le Controleur grâce à ces informations. Le Controleur peut alors générer les individus lors de la simulation.
 
 \section{Controleur}
 L'élément principal du système IBM est le controleur, il a pour but de gérer tous les évènements qui voyagent dans le système en les faisant passer par lui. Il hérite de nombreuses classes ce qui lui permet d'avoir les capacités d'une dynamique, d'un exécutive et d'un GenericAgent.\\
-\begin{minipage}{\linewidth}% to keep image and caption on one page
+\noindent\begin{minipage}{\linewidth}% to keep image and caption on one page
 \makebox[\linewidth]{%        to center the image
   \includegraphics [width=60mm]{images/heritageControleur.png}}
 \captionof{figure}{Graphe d'héritage du controleur}%\label{visina8}%      only if needed  
@@ -21,7 +34,7 @@ L'élément principal du système IBM est le controleur, il a pour but de gérer
 Il se crée automatiquement à la première ouverture du plugin IBM. Ces capacités sont multiples grâce à la hiérarchie d'héritage dont il est formé.
 \subsection{Une dynamique}
 Il possède la capacité d'une dynamique DEVS, recevoir des évènements par ses ports d'entrées, envoyer des évènements par ses ports de sorties, exécuter un programme interne à chaque pas de temps (transition interne), gérer les évènements externes (transition externe). Voici un résumé de sa dynamique. \\
-\begin{minipage}{\linewidth}% to keep image and caption on one page
+\noindent\begin{minipage}{\linewidth}% to keep image and caption on one page
 \makebox[\linewidth]{%        to center the image
   \includegraphics [width=100mm]{images/dynamiqueControleur.png}}
 \captionof{figure}{Dynamique du controleur}%\label{visina8}%      only if needed  
@@ -50,7 +63,7 @@ En bleu, les évènements, on peut en ajouter grâce au bouton ``+'' sur le cot�
 Ici l'exemple du tp Modelmaker sur le remplissage et vidange des compartiments.
 Deux évènements, ``exec'' et ``init'', ``init'' est appelé lors de l'initialisation et le script de l'évènement ``exec'' tous les 0.1 à partir de la date 0.01.
 
-\begin{minipage}{\linewidth}% to keep image and caption on one page
+\noindent\begin{minipage}{\linewidth}% to keep image and caption on one page
 \makebox[\linewidth]{%        to center the image
   \includegraphics [width=150mm]{images/exemplePlugin.png}}
 \captionof{figure}{Interface graphique du plugin IBM}%\label{visina8}%      only if needed  
@@ -66,25 +79,25 @@ Mais ce langage ne permet pas à l'utilisateur d'effectuer des actions sur les i
 \\
 Dans l'exemple ci-dessous, le controleur récupère le script lua puis l'exécute. Comme addModel n'existe pas dans le langage lua, le proxy comblera cette anomalie en appelant la fonction du controleur associée à addModel à chaque fois qu'elle sera appelé. Dans ce cas, trois fois.\\
 
-\begin{minipage}{\linewidth}% to keep image and caption on one page
+\noindent\begin{minipage}{\linewidth}% to keep image and caption on one page
 \makebox[\linewidth]{%        to center the image
   \includegraphics [width=150mm]{images/proxyLua.png}}
 \captionof{figure}{Exécution d'un script lua depuis le controleur}%\label{visina8}%      only if needed  
 \end{minipage}
 
 \subsection{Les extensions}
-Chaque extension du langage lua ont comme préfixe ``ibm:''. Elles permettent d'avoir des effets sur les modèles, d'obtenir des informations ou lancer des évènements.\\
+Chaque extension du langage lua ont comme préfixe ``ibm\string:''. Elles permettent d'avoir des effets sur les modèles, d'obtenir des informations ou lancer des évènements.\\
 Voici la liste des extensions développées qui ont des effets sur les individus :
 \begin{itemize}[label=\textbullet,font=\large]
 	\item addModel(n,``M'')\\
-	Ajoute n model de type ``M''. n peut être une chaîne de caractère, dans ce cas, elle doit correspondre à un champs des conditions expérimentales du controleur qui indique une quantité.
+	Ajoute n model de type ``M''.
 	\item delModel(``ModelName'')\\
 	Supprime le modèle dont le nom est ``ModelName''.
 	\item addModelWithParam(``Class'', n, ``Param1'', value1, ``Param2'', value2, ...)\\
 	Ajoute n model de type ``Class'' en modifiant les paramètres de telle manière à ce que Param1 = value1 et Param2 = value2. Le nombre de paramètre à modifier est indéfini.
-	\item setModelValue(class, i, varName, varValue)\\
+	\item setModelValue(class, i, ``varName'', varValue)\\
 	Modifie la valeur de ``varName'' par ``varValue'' du i\up{ème} modèle de la classe ``class''.
-	\item setModelValue(``modelName'', ``varName'', ``varValue'')\\
+	\item setModelValue(``modelName'', ``varName'', varValue)\\
 	Modifie la valeur de ``varName'' par ``varValue'' du modèle nommé ``modelName''.
 \end{itemize}
 Les extensions qui permettent d'avoir des informations sur les individus.
@@ -100,12 +113,56 @@ Les extensions qui permettent d'avoir des informations sur les individus.
 	\item getTime()\\
 	Renvoie la date actuelle durant la simulation.
 \end{itemize}
+
+Dans toutes ces extensions, il est possible de remplacer la valeur des quantités, double ou int, par une chaîne de caractère qui correspond à un paramètre des conditions expérimentales du controleur.\\
+Quantité de modèles ajoutés dans addModel, la quantité de modèles et la valeur des paramètres dans addModelWithParam et la valeur de ``varValue'' dans setModelValue.\\
+
 L'extension permettant de lancer des évènements est addEvent. Cette fonction peut être de trois types, ``INIT'', ``SINGLE'' ou ``RECUR'' précisé en premier paramètre. \\
 L'évènement lancé se traduit par l'exécution d'une fonction écrite par l'utilisateur dans le script. Cette fonction est toujours précisé en dernier paramètre de addEvent.\\
 ``INIT'' permet de lancer un premier script à l'initialisation de la simulation.\\
 ``SINGLE'' permet de lancer un évènement ponctuel dans la simulation, c'est-à-dire l'exécution d'une fonction lua à un temps déterminé par l'utilisateur. La syntaxe sera addEvent(``SINGLE'', date, ``fonction'').\\
-``RECUR'' permet de lancer un évènement qui s'exécutera à une certaine fréquence depuis une date déterminée par l'utilisateur. On aura addEvent(``RECUR'', date, frequence, ``fonction'').
+``RECUR'' permet de lancer un évènement qui s'exécutera à une certaine fréquence depuis une date déterminée par l'utilisateur. On aura addEvent(``RECUR'', date, frequence, ``fonction'').\\
 
+Par exemple, ici deux évènements sont implémentés.\\
+Initialisation, 5 loups sont créés avec un age entre 1 et 5.
+
+%\noindent\fbox{\begin{minipage}{1.0\textwidth}
+%- -Event init\\
+%for i=1,5,1 do\\
+%	\textcolor{red}{ibm\string:addModel}(``nbLoup'',``Loup'',``age'',i);\\
+%end
+%\end{minipage}}
+
+\begin{lstlisting}[frame=single]
+--Event init
+for i=1,5,1 do
+	ibm:addModel("nbLoup","Loup","age",i);
+end
+\end{lstlisting}
+
+Ici, l'évènement ``dyn'' ajoute 1 à l'age de chaque loup. Ceux qui atteignent 10 sont affichés.
+\begin{lstlisting}[frame=single]
+--Event dyn
+for i=1,ibm:getNumber("Loup"),1 do
+	x = ibm:getModelValue("Loup",i,"age")
+	ibm:setModelValue("Loup",i,x + 1)
+	if ibm:getModelValue("Loup",i,"age") == 10 then
+		print(ibm:getName("Loup",i))
+	end
+end
+\end{lstlisting}
+
+Appel des évènements. Tout d'abord ``init'' à l'initialisation puis l'évènement ``dyn'' à partir de la date 4 et tous les 1 jusqu'à le fin de la simulation.
+
+\begin{lstlisting}[frame=single]
+ibm:addEvent("INIT","init");
+ibm:addEvent("RECUR",4,1,"dyn");
+\end{lstlisting}
+
+En rouge, toutes les extensions utilisées dans le script.
+
+Une autre fonctionnalité a été implémentée afin de permettre à l'utilisateur d'observer les variables de son choix faisant partie de son script lua.\\
+Par exemple, l'utilisateur peut observer la quantité d'individus au cours de la simulation en définissant une variable globale ``var'' dans le  script d'un évènement appelé récursivement qui prendrait pour valeur la somme de tous les individus.\\ Puis l'utilisateur doit déclarer cette variable ``var'' dans les observables du Controleur et lui associer une vue de sortie. Il sera alors possible d'observer la quantité d'individus tout au long de la simulation.
 \section{Déroulement du stage}
 \subsection{Découverte}
 Les premiers jours ont été destinées à l'installation de toutes les parties nécessaires au fonctionnement du logiciel et à la compréhension de ce dernier, à quoi sert-il et comment fonctionne-t-il du point de vue de l'utilisateur.\\
@@ -126,8 +183,9 @@ Cependant, j'ai été confronté à un problème. L'utilisateur ne pouvait pas d
 Afin de résoudre se problème, j'ai mis en place un Scheduler. Il permet l'ordénation d'évènements par le temps auxquel ils doivent s'exécuter puis l'envoie de ses derniers à la bonne date lors de la simulation.\\
 Grâce au scheduler, l'utilisateur simplifie son code en ne faisant que des fonctions lua puis appelle ses dernières dans l'ordre et la fréquence qu'il souhaite grâce à la commande d'ajout d'évènement addEvent.
 \subsection{Bugs \& tests}
-Au cours du développement, de nombreux bugs se sont manifestés. Leurs résolutions étaient parfois évidente, mais il pouvait être parfois plus difficil de trouver leurs sources.\\
-J'ai donc utilisé gdb pour essayer de repérer les sources d'erreurs plus facilement, mais parfois ce système ne fonctionnait pas car c'était gdb lui-même qui provocait les bugs.\\
+Au cours du développement, de nombreux bugs se sont manifestés. Leurs résolutions étaient parfois évidente, mais il pouvait aussi être plus difficil de trouver leurs sources. En effet, ils étaient parfois dû à mon propre code, mais travaillant sur une version en développement, les bugs pouvaient cependant être dû à l'instabilité de l'application. C'est pourquoi, j'ai effectué des rapports de bug.\\
+
+Afin de repérer les sources d'erreurs plus facilement, j'ai utilisé gdb, mais parfois ce système ne fonctionnait pas car c'était gdb lui-même qui provocait les bugs.\\
 D'autres bugs n'étaient visibles que lors de l'analyse des résultats obtenus après simulation. Pour remonter jusqu'aux erreurs, il a fallu songer à des tests, des scripts lua plus simples mais qui pourtant reproduisaient le bug.\\
 Après avoir réalisés ces tests, les plus pertinents ont été insérés dans le paquet vle.extension.ibm avec les TP donnés à titre d'exemple des besoins, afin que l'utilisateur en téléchargeant le plugin, puissent avoir des exemples d'implémentations simples.
 

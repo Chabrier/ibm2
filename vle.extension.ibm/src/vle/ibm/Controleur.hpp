@@ -81,7 +81,7 @@ public:
      *
      * @return int 
      */
-    int readNumber(std::string nb);
+    double readNumber(std::string nb);
     
     double getTime();
     
@@ -99,7 +99,8 @@ protected:
     
 private:
     double time;
-    const vd::InitEventList& mEvents;
+    vv::Map* mEvents;
+    //const vd::InitEventList& mEvents;
 	std::string mScript;
 	std::string mScriptExec;
 	std::map <std::string, std::map <std::string, vle::value::Value*> > mData;

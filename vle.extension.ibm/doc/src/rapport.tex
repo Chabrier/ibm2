@@ -11,6 +11,30 @@
 \usepackage{verbatim}
 \usepackage{caption}
 \usepackage{enumitem}
+\usepackage{ragged2e}
+\usepackage{xcolor}
+%\usepackage{listing}
+%\usepackage[T1]{fontenc}
+%\usepackage{inconsolata}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\lstdefinestyle{myLuastyle}
+{
+  language         = {[5.0]Lua},
+  basicstyle       = \ttfamily,
+  showstringspaces = false,
+  upquote          = true,
+  commentstyle     =\color{gray},
+  stringstyle=\color{blue}
+}
+
+\lstset{style=myLuastyle}
+
+\lstset{emph={%  
+    ibm, addModel, getNumber, getModelValue, setModelValue, getName, addEvent%
+    },emphstyle={\color{red}\bfseries}%
+}
 
 \titlespacing{\chapter}{0pt}{*-5}{*5}
 \titlespacing{\section}{0pt}{*2}{*2}
@@ -19,6 +43,8 @@
 \renewcommand{\baselinestretch}{1.2}
 \setlength{\parskip}{1.5ex plus .4ex minus .4ex}
 \setlength{\parindent}{15pt} 
+\setlength{\topmargin}{-35pt}
+\setlength{\textheight}{650pt}
 
 \makeatletter
 % subsubsubsection
@@ -50,15 +76,15 @@
 
 \include{travailRealise} 
 
-\chapter{Conclusion}
+\include{conclusion}
 
-\chapter{Bibliographie}
-citer les documentations de références, les
-articles lus
+%\chapter{Bibliographie}
+%citer les documentations de références, les
+%articles lus
 
 \chapter{Abstract}
 résumé d'une dizaine de ligne en anglais
-%\include{annexe}
+\include{annexe}
 
 \appendix
 
