@@ -197,8 +197,6 @@ private:
      */
     bool compareModelClass(std::string modelName, std::string className);
     
-    std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator getItFromData(std::string className, int n);
-    
     void doScriptAt(const Effect& e);
     
     Effect doScriptEffectAt(double t,const std::string& source, std::string functionName, double frequency);

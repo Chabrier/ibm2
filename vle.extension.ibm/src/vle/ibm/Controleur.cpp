@@ -319,17 +319,21 @@ void Controleur::updateData(const vd::ExternalEventList& events) {
 }
 
 double Controleur::getData(std::string modelName, std::string varName) {
-    return mData.find(modelName)->second.find(varName)->second->toDouble().value();
+std::map<std::string,std::map <std::string, vle::value::Value*> >::iterator it = mData.find(modelName);
+    if (it == mData.end())
+        throw utils::ArgError(fmt("getData, invalid parameters `%1%' ") % modelName);
+    std::map <std::string, vle::value::Value*>::iterator it2 = it->second.find(varName);
+    if (it2 == it->second.end())
+        throw utils::ArgError(fmt("No varName `%1%' ") % varName);
+    return it2->second->toDouble().value();
 }
 
 double Controleur::getData(std::string className, int n, std::string varName) {
-    std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it = getItFromData(className, n);
-    return it->second.find(varName)->second->toDouble().value();
+    return getData(getModelNameFromClassNb(className,n),varName);
 }
 
 void Controleur::setModelValue(std::string className, int n, std::string varName, double varValue) {
-    std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it = getItFromData(className, n);
-    setModelValue(it->first, varName, varValue);
+    setModelValue(getModelNameFromClassNb(className,n), varName, varValue);
 }
 
 void Controleur::setModelValue(std::string modelName, std::string varName, double varValue) {
@@ -339,13 +343,13 @@ void Controleur::setModelValue(std::string modelName, std::string varName, doubl
     sendMessage(m);
 }
 
-std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator Controleur::getItFromData(std::string className, int n) {
+std::string Controleur::getModelNameFromClassNb(std::string className, int n) {
     int i = 0; 
     for (std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it = mData.begin(); it!=mData.end(); ++it) {
         if (compareModelClass(it->first, className)) {
             i++;
             if (i == n) {
-                return it;
+                return it->first;
             }
         }
     }
@@ -357,11 +361,6 @@ bool Controleur::compareModelClass(std::string modelName, std::string className)
         return true;
     }
     return false;
-}
-
-std::string Controleur::getModelNameFromClassNb(std::string className, int i) {
-    std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it = getItFromData(className, i);
-    return it->first;
 }
 
 std::string Controleur::getModelNameFromPort(std::string s) {

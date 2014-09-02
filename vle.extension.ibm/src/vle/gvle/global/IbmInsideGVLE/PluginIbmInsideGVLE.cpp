@@ -662,7 +662,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         vpz::Observables& obs = mGVLE->getModeling()->observables();
         mAtomicModel = new vpz::AtomicModel(mName, NULL);
 
-        const std::string namespace_ = "vle.extension.ibm";
+        const std::string namespace_ = mGVLE->currentPackage().name();
         if (plugin->create(*mAtomicModel, dyn, cond, obs, mName, namespace_))
         {
             const std::string& buffer = plugin->source();
