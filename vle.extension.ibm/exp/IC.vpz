@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.3.0.dtd">
 <vle_project version="1.3.0" date="2014-Aug-07 08:19:27" author="Genevieve Cirera">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="1495" height="480"  >
+<model name="Top model" type="coupled" x="0" y="0" width="475" height="480"  >
 <submodels>
 <model name="Controleur" type="atomic" conditions="cond_Controleur" dynamics="dynControleur" x="166" y="70" width="40" height="30" >
 </model>
@@ -22,9 +22,7 @@
  <port name="perturb" />
 </in>
 <out>
- <port name="KG" />
  <port name="X" />
- <port name="age" />
  <port name="masse" />
  <port name="maturing" />
 </out>
@@ -38,63 +36,62 @@
 <xml>
 <![CDATA[lastMature = "";
 poidsMax = 0;
-degenerescence = 0; -- Pour optimisation
---ibm:addModelWithParam(1,"Y","KG",0.005+(0.05-0.005)*math.random());
+lastMatures = {}
 ibm:addEvent("INIT","birth");
---ibm:addEvent("SINGLE",1,"birth");
-ibm:addEvent("RECUR",20, 1,"dyn");]]>
+ibm:addEvent("RECUR",300, 1,"dyn");]]>
 </xml>
 </port>
  <port name="birth" >
 <xml>
 <![CDATA[-- Générer naissance
 for i=1,10,1 do
-	ibm:addModelWithParam(1,"Y","KG",0.005+(0.05-0.005)*math.random());
-end]]>
+	ibm:addModelWithParam(1,"Y","KG",0.04+(0.06-0.04)*math.random());
+end
+ lastMature = "";
+ poidsMax = 0;
+ibm:addEvent("SINGLE",ibm:getTime()+300,"findMax");]]>
 </xml>
 </port>
  <port name="death" >
 <xml>
 <![CDATA[--Gestion des morts
+a = {};
+k=1;
+for i=1,  ibm:getNumber("Y"), 1 do
+if ibm:getModelValue("Y",i, "maturing") ~= 1  and  ibm:getModelValue("Y",i, "masse") <= 0.001 then -- Check celles qui doivent mourir
+                a[k] =ibm:getModelName("Y",i);
+                k = k + 1;
+        end
+end
 for i=1, k-1, 1 do
-	ibm:delModel(a[i]);
+        ibm:delModel(a[i]);
 end]]>
 </xml>
 </port>
  <port name="dyn" >
 <xml>
-<![CDATA[if degenerescence == 0 then -- Pour optimiser
-for i=1, ibm:getNumber("Y"), 1 do
+<![CDATA[death ()
+-- Générer naissance
+if lastMature~="" and ibm:getModelValue(lastMature, "masse") >= 0.99 then
+        birth()
+end]]>
+</xml>
+</port>
+ <port name="findMax" >
+<xml>
+<![CDATA[for i=1, ibm:getNumber("Y"), 1 do
         poidDeI = ibm:getModelValue("Y",i, "masse");
-        if  poidDeI >= poidsMax and ibm:getModelValue("Y",i, "maturing") == 1 and ibm:getModelValue("Y",i,"age") <= 30 then
+        if poidDeI >= poidsMax and ibm:getModelValue("Y",i, "maturing") == 1 and lastMatures[ibm:getModelName("Y",i)]==nil then
                 poidsMax = poidDeI;
                 lastMature = ibm:getModelName("Y",i);
         end
 end
-end
-a = {};
-k=1;
 for i=1,  ibm:getNumber("Y"), 1 do
-        if ibm:getModelValue("Y",i, "maturing") == 1 and ibm:getModelValue("Y",i,"masse") < poidsMax and ibm:getModelValue("Y",i,"age") <= 32 and ibm:getModelValue("Y",i,"age") > 29 then
-                degenerescence = 1;
+        if ibm:getModelValue("Y",i, "maturing") == 1 and ibm:getModelValue("Y",i,"masse") < poidsMax and lastMatures[ibm:getModelName("Y",i)]==nil then
                 ibm:setModelValue("Y",i,"maturing",0.0);
-        elseif ibm:getModelValue("Y",i, "maturing") ~= 1  and  ibm:getModelValue("Y",i, "masse") <= 0.1 then -- Check celles qui doivent mourir
-                a[k] =ibm:getModelName("Y",i);
-                k = k + 1;
-        end
+	end
 end
-
---Gestion des morts
-for i=1, k-1, 1 do
-        ibm:delModel(a[i]);
-end
--- Générer naissance
-if ibm:getModelValue(lastMature, "masse") >= 0.99 then
-        birth()
-        lastMature = "";
-        poidsMax = 0;
-        degenerescence = 0;
-end]]>
+lastMatures[lastMature] = lastMature;]]>
 </xml>
 </port>
 </condition>
@@ -108,25 +105,22 @@ end]]>
  <port name="X" >
 <double>1.000000000000000</double>
 </port>
- <port name="age" >
-<double>0.000000000000000</double>
-</port>
  <port name="masse" >
-<double>0.000000000000000</double>
+<double>0.000001000000000</double>
 </port>
  <port name="maturing" >
 <double>1.000000000000000</double>
 </port>
  <port name="variables" >
-<map><key name="KG"><double>0.000000000000000</double></key><key name="X"><double>1.000000000000000</double></key><key name="age"><double>0.000000000000000</double></key><key name="masse"><double>0.000000000000000</double></key><key name="maturing"><double>1.000000000000000</double></key></map>
+<map><key name="X"><double>1.000000000000000</double></key><key name="masse"><double>0.000001000000000</double></key><key name="maturing"><double>1.000000000000000</double></key></map>
 </port>
 </condition>
 <condition name="cond_DTE_Y_integration" >
  <port name="method" >
-<string>euler</string>
+<string>rk4</string>
 </port>
  <port name="method-parameters" >
-<map><key name="timestep"><double>0.001000000000000</double></key></map>
+<map><key name="timestep"><double>0.010000000000000</double></key></map>
 </port>
 </condition>
 <condition name="simulation_engine" >
@@ -134,7 +128,7 @@ end]]>
 <double>0.000000000000000</double>
 </port>
  <port name="duration" >
-<double>300.000000000000000</double>
+<double>2000.000000000000000</double>
 </port>
 </condition>
 </conditions>
@@ -152,10 +146,6 @@ end]]>
 <port name="Senescence" />
 
 <port name="X" />
-
-<port name="age" />
-
-<port name="f" />
 
 <port name="masse" >
  <attachedview name="CellView" />

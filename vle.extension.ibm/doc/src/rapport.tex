@@ -18,6 +18,9 @@
 %\usepackage{inconsolata}
 \usepackage{textcomp}
 \usepackage{listings}
+\usepackage{pgfgantt}
+\usepackage{lscape}
+\usepackage{pdfpages}
 
 \lstdefinestyle{myLuastyle}
 {
@@ -34,6 +37,16 @@
 \lstset{emph={%  
     ibm, addModel, getNumber, getModelValue, setModelValue, getName, addEvent%
     },emphstyle={\color{red}\bfseries}%
+}
+
+\newgantttimeslotformat{stardate}{%
+	\def\decomposestardate##1.##2\relax{%
+		\def\stardateyear{##1}\def\stardateday{##2}%
+	}%
+	\decomposestardate#1\relax%
+	\pgfcalendardatetojulian{\stardateyear-01-01}{#2}%
+	\advance#2 by-1\relax%
+	\advance#2 by\stardateday\relax%
 }
 
 \titlespacing{\chapter}{0pt}{*-5}{*5}
@@ -78,12 +91,23 @@
 
 \include{conclusion}
 
-%\chapter{Bibliographie}
-%citer les documentations de références, les
-%articles lus
+\chapter{Bibliographie}
+\noindent Documentation de VLE :\\
+\url{http://www.vle-project.org/doxygen/dev/}\\
+\vspace{0.5cm}
+
+\noindent Tutorials VLE :\\
+\url{http://www.vle-project.org/wiki/Tutorials}\\
+\vspace{0.5cm}
+
+\noindent Documentation utilisateur GVLE :\\
+\url{http://record-elearning.inra.fr/record/}
 
 \chapter{Abstract}
-résumé d'une dizaine de ligne en anglais
+I did this internship with the RECORD team in the National Institute for Research Agronomics in Toulouse, a french institute founded in 1946.\\
+I learnt the DEVS dynamics using VLE software. After that, I autonomously started develop a software extension in C++ programming language to provide new features to GVLE software. The objective is to give new modelisation possibilities to the user like cloning and manage individuals during a simulation.\\
+I saw differents aspects of developpement: the definition of the users needs, developpement of functionalities, grafic interface, debug, tests...
+
 \include{annexe}
 
 \appendix

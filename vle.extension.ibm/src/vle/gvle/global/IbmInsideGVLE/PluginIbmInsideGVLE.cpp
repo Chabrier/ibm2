@@ -70,7 +70,7 @@ const Glib::ustring UI_DEFINITION =
     "</ui>";
     
 const std::string SCRIPT_DEFAULT =
-    "-- Write you code for the event here\n";
+    "-- Write your code for the event here\n";
 
 /**
  * @class PluginIbminsideGVLE
