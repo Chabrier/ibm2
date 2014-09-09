@@ -8,13 +8,11 @@
 
 #include "ControleurProxy.hpp"
 #include <vle/extension/mas/GenericAgent.hpp>
-//#include <vle/devs/Executive.hpp>
-//#include <vle/devs/ExecutiveDbg.hpp>
 #include <vle/vpz/Conditions.hpp>
 #include <map>
 #include <sstream>
 #include <iostream>
-#include <fstream> //Pour dump
+#include <fstream>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/lexical_cast.hpp>
@@ -43,20 +41,6 @@ public:
                const vd::InitEventList& events);
 
     ~Controleur();
-
-    /*virtual vd::Time init(const vd::Time& t);
-    
-    virtual void internalTransition(const devs::Time& t);
-
-    virtual void externalTransition(const vd::ExternalEventList& events,
-                            const vd::Time& t);
-
-    virtual vd::Time timeAdvance() const;
-
-    virtual void output(const vd::Time&  time ,
-                        vd::ExternalEventList& output) const;
-    
-    vv::Value* observation(const vd::ObservationEvent& event) const;*/
 
     void addInstruction(int nb_clone, std::string className);
 
@@ -100,7 +84,6 @@ protected:
 private:
     double time;
     vv::Map* mEvents;
-    //const vd::InitEventList& mEvents;
 	std::string mScript;
 	std::string mScriptExec;
 	std::map <std::string, std::map <std::string, vle::value::Value*> > mData;

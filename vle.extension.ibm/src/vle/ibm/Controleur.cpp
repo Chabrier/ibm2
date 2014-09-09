@@ -8,7 +8,7 @@
 #include <map>
 #include <sstream>
 #include <iostream>
-#include <fstream> //Pour dump
+#include <fstream>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/lexical_cast.hpp>
@@ -232,7 +232,6 @@ std::string Controleur::findModelName(std::string className) {
  * @param const vpz::BaseModel* model
  */
 void Controleur::connectionModelToExec(std::string modelName, const vpz::BaseModel* model) {
-    //std::map< std::string, ModelPortList > vle::vpz::ConnectionList
     std::map<std::string, vpz::ModelPortList> portList = model->getOutputPortList();
     for (std::map<std::string, vpz::ModelPortList>::iterator it=portList.begin(); it!=portList.end(); ++it){
         std::string outputPortName = it->first;
