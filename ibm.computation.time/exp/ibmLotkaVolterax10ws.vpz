@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.3.0.dtd">
+<vle_project version="1.3.0" date="2014-Sep-09 13:02:21" author="Patrick Chabrier">
+<structures>
+<model name="Top model" type="coupled" x="0" y="0"  >
+<submodels>
+<model name="Controleur" type="atomic" conditions="cond_Controleur" dynamics="dynControleur" x="50" y="50" width="40" height="30" >
+</model>
+</submodels>
+<connections>
+</connections>
+</model>
+</structures>
+<dynamics>
+<dynamic name="LotkaVolterra" library="LotkaVolterra" package="ibm.computation.time"  />
+<dynamic name="dynControleur" library="Controleur" package="vle.extension.ibm"  />
+</dynamics>
+<classes>
+<class name="LotkaVolterra" >
+<model name="LotkaVolterra" type="atomic" conditions="cond_DTE_LotkaVolterra_integration,cond_DTE_LotkaVolterra" dynamics="LotkaVolterra" observables="obs_DTE_LotkaVolterra" >
+<in>
+ <port name="perturb" />
+</in>
+<out>
+ <port name="X" />
+ <port name="Y" />
+</out>
+</model>
+</class>
+</classes>
+<experiment name="exp" combination="linear"  >
+<conditions>
+<condition name="cond_Controleur" >
+ <port name="Script" >
+<xml>
+<![CDATA[ibm:addModel(10, "LotkaVolterra")]]>
+</xml>
+</port>
+</condition>
+<condition name="cond_DTE_LotkaVolterra" >
+ <port name="X" >
+<double>10.000000000000000</double>
+</port>
+ <port name="Y" >
+<double>5.000000000000000</double>
+</port>
+ <port name="alpha" >
+<double>1.500000000000000</double>
+</port>
+ <port name="beta" >
+<double>1.000000000000000</double>
+</port>
+ <port name="delta" >
+<double>3.000000000000000</double>
+</port>
+ <port name="gamma" >
+<double>1.000000000000000</double>
+</port>
+ <port name="variables" >
+<map><key name="X"><double>10.000000000000000</double></key><key name="Y"><double>5.000000000000000</double></key></map>
+</port>
+</condition>
+<condition name="cond_DTE_LotkaVolterra_integration" >
+ <port name="method" >
+<string>rk4</string>
+</port>
+ <port name="method-parameters" >
+<map><key name="timestep"><double>0.010000000000000</double></key></map>
+</port>
+</condition>
+<condition name="simulation_engine" >
+ <port name="begin" >
+<double>0.000000000000000</double>
+</port>
+ <port name="duration" >
+<double>100000.000000000000000</double>
+</port>
+</condition>
+</conditions>
+<views>
+<outputs>
+<output name="view" location="" format="local" package="vle.output"  plugin="storage" >
+<map><key name="columns"><integer>10</integer></key><key name="inc_columns"><integer>1</integer></key><key name="inc_rows"><integer>1000</integer></key><key name="rows"><integer>10000</integer></key></map></output>
+
+</outputs>
+<observables>
+<observable name="obs_DTE_LotkaVolterra" >
+<port name="X" >
+ <attachedview name="view" />
+</port>
+
+<port name="XDeath" />
+
+<port name="XGrowth" />
+
+<port name="Y" >
+ <attachedview name="view" />
+</port>
+
+<port name="YDeath" />
+
+<port name="YGrowth" />
+
+</observable>
+
+</observables>
+<view name="view" output="view" type="timed" timestep="1.000000000000000" />
+
+</views>
+</experiment>
+</vle_project>
