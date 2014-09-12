@@ -4,7 +4,7 @@
   * ...
   *@@tagdynamic@@
   *@@tagdepends:vle.extension.differential-equation@@endtagdepends
-  * @@tag Forrester@vle.forrester @@namespace:vle.extension.ibm;class:M;400|400;c:C3,120,288,90,25|C1,109,104,90,25|DSAT,279,355,90,25|C2,119,199,90,25|;f:f2,271,256,50,20,DSAT * C2,false,,,|f1,267,165,50,20,C1 * p1,false,,,|;fa:C1,f1,5,2|f1,C2,3,5|C2,f2,5,2|f2,C3,3,5|;p:p1,342,73,30,16|;pa:C1,f1,5,0,245,134|p1,f1,0,0,317,116|C2,f2,5,0,252,227|DSAT,f2,0,6,299,315|;ev:;v:;@@end tag@@
+  * @@tag Forrester@vle.forrester @@namespace:vle.ibm;class:M;400|400;c:C3,120,288,90,25|C1,109,104,90,25|DSAT,279,355,90,25|C2,119,199,90,25|;f:f2,271,256,50,20,DSAT * C2,false,,,|f1,267,165,50,20,C1 * p1,false,,,|;fa:C1,f1,5,2|f1,C2,3,5|C2,f2,5,2|f2,C3,3,5|;p:p1,342,73,30,16|;pa:C1,f1,5,0,245,134|p1,f1,0,0,317,116|C2,f2,5,0,252,227|DSAT,f2,0,6,299,315|;ev:;v:;@@end tag@@
   */
 
 #include <vle/extension/differential-equation/DifferentialEquation.hpp>
@@ -71,7 +71,7 @@ virtual vv::Value* observation(
 }
 };
 
-} // namespace vle.extension.ibm
+} // namespace vle.ibm
 
 DECLARE_DYNAMICS(vleextensionibm::M)
 

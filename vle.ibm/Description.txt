@@ -7,7 +7,7 @@ Maintainer: Patrick Chabrier <patrick.chabrier@toulouse.inra.fr>
 Description: Still in progress
  .
 Tags: examples
-Url: http://ibm/vle.extension.ibm.toulouse.inra.fr/distributions/1.1
+Url: http://ibm/vle.ibm.toulouse.inra.fr/distributions/1.1
 Size: 0
 MD5sum: xxxx
 

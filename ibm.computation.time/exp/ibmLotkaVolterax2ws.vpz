@@ -13,7 +13,7 @@
 </structures>
 <dynamics>
 <dynamic name="LotkaVolterra" library="LotkaVolterra" package="ibm.computation.time"  />
-<dynamic name="dynControleur" library="Controleur" package="vle.extension.ibm"  />
+<dynamic name="dynControleur" library="Controleur" package="vle.ibm"  />
 </dynamics>
 <classes>
 <class name="LotkaVolterra" >

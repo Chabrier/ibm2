@@ -68,7 +68,7 @@ const Glib::ustring UI_DEFINITION =
     "        <menuitem name='FileTV_ContextLaunchIbm' action='FileTV_ContextLaunchIbm'/>"
     "    </popup>"
     "</ui>";
-    
+
 const std::string SCRIPT_DEFAULT =
     "-- Write your code for the event here\n";
 
@@ -114,7 +114,7 @@ public:
         for (std::list < sigc::connection >::iterator it = mList.begin();
             it != mList.end(); ++it) {
             it->disconnect();
-        } 
+        }
     }
 
     /**
@@ -163,24 +163,24 @@ public:
     {
         Glib::RefPtr< Gtk::Builder > mXml = Gtk::Builder::create();
 
-        vle::utils::Package pack("vle.extension.ibm");
+        vle::utils::Package pack("vle.ibm");
         std::string glade = pack.getPluginGvleModelingFile("ibmGVLE.glade", vle::utils::PKG_BINARY);
         mXml->add_from_file(glade);
 
         mXml->get_widget("window1", mWindow);
         mWindow->show();
-        
+
         if (openVpz())
         {
             mXml->get_widget("treeviewClassName", mClasses);
             mClassesListStore = Gtk::ListStore::create(mClassesColumns);
             mClasses->set_model(mClassesListStore);
             initClassesColumnName();
-            mClassesCopy = mGVLE->getModeling()->vpz().project().classes(); 
-            
+            mClassesCopy = mGVLE->getModeling()->vpz().project().classes();
+
             fillClasses();
             initMenuPopupClasses();
-        
+
             mXml->get_widget("buttonApply", mButtonApply);
             mButtonApply->signal_clicked().connect(sigc::mem_fun(*this,
                                                      &PluginIbmInsideGVLE::onApply));
@@ -188,7 +188,7 @@ public:
             mButtonApply->signal_clicked().connect(sigc::mem_fun(*this,
                                                      &PluginIbmInsideGVLE::onCancel));
             mXml->get_widget("textviewScript", mTextViewScript);
-            
+
             mXml->get_widget("listbox1", mListBox);
             mXml->get_widget("buttonMore", mButtonMore);
             mButtonMore->signal_clicked().connect(sigc::mem_fun(*this,
@@ -196,15 +196,15 @@ public:
             mXml->get_widget("buttonRemove", mButtonRemove);
             mButtonRemove->signal_clicked().connect(sigc::mem_fun(*this,
                                                      &PluginIbmInsideGVLE::onRemoveScript));
-            mXml->get_widget("dialog1", mDialog);  
+            mXml->get_widget("dialog1", mDialog);
             mXml->get_widget("buttonDialogApply", mButtonDialogApply);
             mButtonDialogApply->signal_clicked().connect(sigc::mem_fun(*this,
-                                                     &PluginIbmInsideGVLE::onApplyNewName)); 
+                                                     &PluginIbmInsideGVLE::onApplyNewName));
             mXml->get_widget("buttonDialogCancel", mButtonDialogCancel);
             mButtonDialogCancel->signal_clicked().connect(sigc::mem_fun(*this,
-                                                     &PluginIbmInsideGVLE::onCancelNewName)); 
+                                                     &PluginIbmInsideGVLE::onCancelNewName));
             mXml->get_widget("entryName", mEntryName);
-            
+
             if (existConditions()) {
                 fillTextViewScript();
                 fillScripts();
@@ -221,7 +221,7 @@ public:
         createControleurAndDyn();
         saveScripts();
         removePort();
-        
+
         std::set<std::string>::const_iterator
             sit (mDeletedClasses.begin()),
             send(mDeletedClasses.end());
@@ -231,19 +231,19 @@ public:
 std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle::utils::PKG_SOURCE);
             std::remove(fileToRemove.c_str());
         }
-        
+
         clean();
         mGVLE->getModeling()->setModified(true);
-        
+
         mWindow->hide();
         mGVLE->redrawModelClassBox();
         mGVLE->onSave();
     }
-    
+
     void clean() {
         mDeletedClasses.clear();
         mClassesCopy.clear();
-        
+
         mScriptsCopy.clear();
         mPortToRemove.clear();
     }
@@ -256,12 +256,12 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         clean();
         mWindow->hide();
     }
-    
+
     void onMoreScript() {
         mDialog->show_all();
         mDialog->run();
     }
-    
+
     void onApplyNewName() {
         std::string eventName = mEntryName->get_text();
         if (isValidName(eventName) && mScriptsCopy.find(eventName) == mScriptsCopy.end() && std::find(mPortToRemove.begin(), mPortToRemove.end(), eventName) == mPortToRemove.end()) {
@@ -269,18 +269,18 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
             createListViewRow(eventName, SCRIPT_DEFAULT);
         }
     }
-    
+
     void onCancelNewName() {
         mDialog->hide();
     }
-    
+
     void createListViewRow(std::string title, std::string content) {
         Glib::RefPtr<Gtk::TextBuffer> buffer = Gtk::TextBuffer::create();
         buffer->set_text(content);
         Gtk::TextView* newTextView = new Gtk::TextView(buffer);
         newTextView->set_name(title);
         newTextView->show();
-        
+
         Gtk::Expander* e = new Gtk::Expander(title, true);
         e->add(*newTextView);
         e->show();
@@ -291,16 +291,16 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         mListBox->append(*l);
         mScriptsCopy.insert(std::pair<std::string, Gtk::TextView*> (title, newTextView));
     }
-    
+
     void fillScripts() {
         vpz::Condition& cond = mGVLE->getModeling()->experiment().conditions().get("cond_" + NAME_CONTROLER);
         for (std::map < std::string, value::Set* >::iterator it = cond.begin(); it!=cond.end(); it++) {
             if (it->first != "Script" && cond.firstValue(it->first).isXml()) {
-                createListViewRow(it->first, cond.firstValue(it->first).toXml().value());            
+                createListViewRow(it->first, cond.firstValue(it->first).toXml().value());
             }
         }
     }
-    
+
     void onRemoveScript() {
         Gtk::ListBoxRow* toRemove = mListBox->get_selected_row();
         if (toRemove) {
@@ -310,7 +310,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
             mListBox->remove(*toRemove);
         }
     }
-    
+
     bool existPort(std::string port) {
         vpz::Condition& cond = mGVLE->getModeling()->experiment().conditions().get("cond_" + NAME_CONTROLER);
         std::map < std::string, value::Set* > it = cond.conditionvalues();
@@ -319,7 +319,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         }
         return true;
     }
-    
+
     void saveScripts() {
         for(std::map<std::string, Gtk::TextView*>::iterator it = mScriptsCopy.begin(); it!= mScriptsCopy.end(); it++) {
             Glib::RefPtr<Gtk::TextBuffer> buffer = it->second->get_buffer();
@@ -327,7 +327,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         }
         saveScriptOnCondition();
     }
-    
+
     void removePort() {
         vpz::Condition& cond = mGVLE->getModeling()->experiment().conditions().get("cond_" + NAME_CONTROLER);
         for (unsigned int i=0; i<mPortToRemove.size(); i++) {
@@ -377,7 +377,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
 
     /**
      * @brief Test if the controler exist
-     * 
+     *
      * @return bool true if the controler already exist, false if not
      */
     bool existControleur() {
@@ -400,7 +400,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
 
     /**
      * @brief Test if the controler's dynamic exist
-     * 
+     *
      * @return bool true if the dynamic exist, false if not
      */
     bool existDynControleur() {
@@ -413,7 +413,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     void createDynControleur() {
         vpz::Dynamic dyn("dyn" + NAME_CONTROLER);
         dyn.setLibrary(NAME_CONTROLER);
-        dyn.setPackage("vle.extension.ibm");
+        dyn.setPackage("vle.ibm");
         mGVLE->getModeling()->vpz().project().dynamics().add(dyn);
         vpz::AtomicModel* atom = mGVLE->getModeling()->getTopModel()->getModel(NAME_CONTROLER)->toAtomic();
         atom->setDynamics(dyn.name());
@@ -421,7 +421,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
 
     /**
      * @brief Test if the condition of the controler exist
-     * 
+     *
      * @return bool true if the controler condition exist, false if not
      */
     bool existConditions() {
@@ -455,7 +455,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         vpz::Condition& c = mGVLE->getModeling()->experiment().conditions().get("cond_" + NAME_CONTROLER);
         c.setValueToPort("Script", *(new vle::value::Xml(buffer->get_text())));
     }
-    
+
     void saveScriptsOnCondition(std::string param, std::string content) {
         vpz::Condition& c = mGVLE->getModeling()->experiment().conditions().get("cond_" + NAME_CONTROLER);
         if (existPort(param)) {
@@ -463,7 +463,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         } else
             c.addValueToPort(param, *(new vle::value::Xml(content)));
     }
-    
+
     std::string showParameter(std::string className) {
         std::string s = "";
         vle::vpz::Conditions& cl = mGVLE->getModeling()->experiment().conditions();
@@ -487,10 +487,10 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         Gtk::TreeViewColumn* nameCol = mClasses->get_column(mColumnName - 1);
         nameCol->set_clickable(true);
         nameCol->set_resizable(true);
-        
+
         mCellRenderer = dynamic_cast<Gtk::CellRendererText*>(
             mClasses->get_column_cell_renderer(mColumnName - 1));
-            
+
         mCellRenderer->property_editable() = true;
         mList.push_back(mCellRenderer->signal_edited().connect(
                             sigc::mem_fun(*this, &PluginIbmInsideGVLE::onEdition)));
@@ -541,14 +541,14 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
             isMakingClass = false;
         }
     }
-    
+
     /**
      * @brief Fill the treeview's rows with the list of classes
      */
     void fillClasses()
     {
         Gtk::RadioAction::Group toolsGroup;
-        
+
         std::map<std::string, vpz::Class> listClass = mClassesCopy.list();
         for (std::map<std::string, vpz::Class>::iterator it=listClass.begin() ; it!=listClass.end() ; ++it)
         {
@@ -562,7 +562,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
         }
         mIter = mClassesListStore->children().end();
     }
-    
+
     /**
      * @brief Update the class list
      */
@@ -579,18 +579,18 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     {
         mActionGroup = Gtk::ActionGroup::create("initMenuPopupClasses");
         mActionGroup->add(Gtk::Action::create("ClasBox_ContextMenu", _("Context Menu")));
-    
+
         mActionGroup->add(Gtk::Action::create("ClasBox_ContextNew", _("_New")),
         sigc::mem_fun(*this, &PluginIbmInsideGVLE::onNewClasses));
         mActionGroup->add(Gtk::Action::create("ClasBox_ContextModify", _("_Modify")),
         sigc::mem_fun(*this, &PluginIbmInsideGVLE::onModifyClasses));
         mActionGroup->add(Gtk::Action::create("ClasBox_ContextRemove", _("_Remove")),
         sigc::mem_fun(*this, &PluginIbmInsideGVLE::onRemoveClass));
-        
+
 
         mUIManager = Gtk::UIManager::create();
         mUIManager->insert_action_group(mActionGroup);
-    
+
         Glib::ustring ui_info =
         "<ui>"
         "  <popup name='ClasBox_Popup'>"
@@ -610,7 +610,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
 
         if (!mMenu)
             std::cerr << "menu not found : ClasBox_Popup \n";
-    
+
         mList.push_back(mClasses->signal_button_release_event().connect(
                         sigc::mem_fun(*this,
                                       &PluginIbmInsideGVLE::onButtonRealeaseClasses)));
@@ -633,7 +633,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
             mClasses->set_cursor(mClassesListStore->get_path(iter),*nameCol,true);
         }
     }
-    
+
     std::string generateClassName(std::string modelName) {
         std::string modelNameOrigin = modelName;
         int copyNumber = 1;
@@ -688,7 +688,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
             onRemoveClass();
         }
     }
-    
+
     std::string getClassSelected() {
         std::string name = "";
         Glib::RefPtr < Gtk::TreeView::Selection > ref = mClasses->get_selection();
@@ -699,7 +699,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
                 name = row.get_value(mClassesColumns.mName);
             }
         }
-        
+
         return name;
     }
 
@@ -773,7 +773,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
 
     /**
      * @brief Right click menu
-     * 
+     *
      * @param GdkEventButton*
      *
      * @return bool
@@ -792,7 +792,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     struct ClassesModelColumns : public Gtk::TreeModel::ColumnRecord
     {
         ClassesModelColumns()
-        { add(mName); 
+        { add(mName);
           add(mInfo);}
 
         Gtk::TreeModelColumn<Glib::ustring> mName;
@@ -853,7 +853,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     Glib::ustring                               mOldName;
 
     bool                                        isMakingClass;
-    
+
     Gtk::Button*                                mButtonMore;
     Gtk::ListBox*                               mListBox;
     std::map<std::string, Gtk::TextView*>       mScriptsCopy;

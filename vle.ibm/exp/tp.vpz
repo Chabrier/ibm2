@@ -12,8 +12,8 @@
 </model>
 </structures>
 <dynamics>
-<dynamic name="M" library="M" package="vle.extension.ibm"  />
-<dynamic name="dynControleur" library="Controleur" package="vle.extension.ibm"  />
+<dynamic name="M" library="M" package="vle.ibm"  />
+<dynamic name="dynControleur" library="Controleur" package="vle.ibm"  />
 </dynamics>
 <classes>
 <class name="M" >
