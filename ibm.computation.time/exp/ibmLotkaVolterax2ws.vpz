@@ -65,7 +65,7 @@
 <string>rk4</string>
 </port>
  <port name="method-parameters" >
-<map><key name="timestep"><double>0.010000000000000</double></key></map>
+<map><key name="output_period"><integer>1</integer></key><key name="timestep"><double>0.010000000000000</double></key></map>
 </port>
 </condition>
 <condition name="simulation_engine" >

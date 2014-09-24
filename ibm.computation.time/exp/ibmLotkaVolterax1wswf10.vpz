@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.3.0.dtd">
 <vle_project version="1.3.0" date="2014-Sep-09 13:02:21" author="Patrick Chabrier">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="482" height="436"  >
+<model name="Top model" type="coupled" x="0" y="0" width="482" height="314"  >
 <submodels>
 <model name="Controleur" type="atomic" conditions="cond_Controleur" dynamics="dynControleur" x="50" y="50" width="40" height="30" >
 </model>
@@ -33,7 +33,7 @@
 <condition name="cond_Controleur" >
  <port name="Script" >
 <xml>
-<![CDATA[ibm:addModel(10, "LotkaVolterra")]]>
+<![CDATA[ibm:addModel(1, "LotkaVolterra")]]>
 </xml>
 </port>
 </condition>
@@ -65,7 +65,7 @@
 <string>rk4</string>
 </port>
  <port name="method-parameters" >
-<map><key name="output_period"><integer>1</integer></key><key name="timestep"><double>0.010000000000000</double></key></map>
+<map><key name="output_period"><integer>10</integer></key><key name="timestep"><double>0.010000000000000</double></key></map>
 </port>
 </condition>
 <condition name="simulation_engine" >
