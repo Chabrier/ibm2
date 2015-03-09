@@ -1,6 +1,6 @@
 Package: MyProject
 Version: 0.1.0
-Depends:
+Depends: vle.output
 Build-Depends: vle.extension.differential-equation
 Conflicts:
 Maintainer: Gauthier Quesnel <quesnel@users.sourceforge.net>

@@ -1,7 +1,7 @@
 Package: IbminsideGVLE
 Version: 0.1.0
 Depends:
-Build-Depends: vle.extension.differential-equation
+Build-Depends: vle.extension.differential-equation, ext.lua
 Conflicts:
 Maintainer: Patrick Chabrier <patrick.chabrier@toulouse.inra.fr>
 Description: Still in progress

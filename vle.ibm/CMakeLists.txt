@@ -55,14 +55,14 @@ FIND_PACKAGE(PkgConfig REQUIRED)
 ##
 ## Find Lua libs
 ##
-FIND_PACKAGE(Lua51 REQUIRED)
+##FIND_PACKAGE(Lua51 REQUIRED)
 
 ##
 ## Check vle
 ##
 
 set(VLE_DEBUG 0)
-set(VLE_ABI_VERSION 1.3)
+set(VLE_ABI_VERSION 1.1)
 find_package(VLE REQUIRED)
 find_package(GVLE)
 set (VleUtils_DIR "${CMAKE_SOURCE_DIR}/cmake")
@@ -80,7 +80,9 @@ endif ()
 
 set(VleCheckPackage_DIR "${CMAKE_SOURCE_DIR}/cmake")
 FIND_PACKAGE(VleCheckPackage REQUIRED)
-SET(VLE_ABI_VERSION 1.3)
+SET(VLE_ABI_VERSION 1.1)
+VLE_CHECK_PACKAGE(LUA ext.lua)
+
 
 ##
 ## Subdirectory
