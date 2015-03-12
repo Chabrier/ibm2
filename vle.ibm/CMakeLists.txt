@@ -13,7 +13,7 @@ SET(VLE_NAME "${PROJECT_NAME}-${MODEL_MAJOR}.${MODEL_MINOR}")
 ## Options for compilation of package
 ##
 
-OPTION(WITH_TEST "will build the test [default: ON]" ON)
+OPTION(WITH_TEST "will build the test [default: ON]" OFF)
 OPTION(WITH_DOC "will compile doc and install it [default: OFF]" OFF)
 OPTION(WITH_WARNINGS "will compile with g++ warnings [default: ON]" ON)
 
@@ -83,12 +83,10 @@ FIND_PACKAGE(VleCheckPackage REQUIRED)
 SET(VLE_ABI_VERSION 1.1)
 VLE_CHECK_PACKAGE(LUA ext.lua)
 
-
 ##
 ## Subdirectory
 ##
 
-ADD_SUBDIRECTORY(data)
 IF (WITH_DOC)
   ADD_SUBDIRECTORY(doc)
 ENDIF (WITH_DOC)

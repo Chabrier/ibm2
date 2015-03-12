@@ -1,3 +1,9 @@
+/*
+ * @file vle/ibm/lua.h
+ *
+ * This file is a copy of a part of a page of the Lua wiki
+ * http://lua-users.org
+ */
 extern "C" {
 #include "lua.h"
 #include "lauxlib.h"

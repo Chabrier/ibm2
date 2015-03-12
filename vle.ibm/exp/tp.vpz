@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.3.0.dtd">
+<!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.1.0.dtd">
 <vle_project version="1.3.0" date="2014-Aug-06 12:34:59" author="Genevieve Cirera">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="475" height="480"  >
+<model name="Top model" type="coupled" x="0" y="0" width="933" height="321"  >
 <submodels>
-<model name="Controleur" type="atomic" conditions="cond_Controleur" dynamics="dynControleur" observables="obs_Controleur" x="50" y="50" width="40" height="30" >
+<model name="Controleur" type="atomic" conditions="cond_Controleur" dynamics="dynControleur" observables="obs_Controleur" x="36" y="22" width="40" height="30" >
 </model>
 </submodels>
 <connections>
@@ -30,7 +30,7 @@
 </model>
 </class>
 </classes>
-<experiment name="exp" combination="linear"  >
+<experiment name="exp" duration="100.000000000000000" begin="0.000000000000000" combination="linear"  >
 <conditions>
 <condition name="cond_Controleur" >
  <port name="Script" >
@@ -88,14 +88,6 @@ nbIndiv = 5;]]>
 </port>
  <port name="method-parameters" >
 <map><key name="timestep"><double>0.001000000000000</double></key></map>
-</port>
-</condition>
-<condition name="simulation_engine" >
- <port name="begin" >
-<double>0.000000000000000</double>
-</port>
- <port name="duration" >
-<double>100.000000000000000</double>
 </port>
 </condition>
 </conditions>

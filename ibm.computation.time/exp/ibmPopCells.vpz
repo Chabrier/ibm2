@@ -2,9 +2,9 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.1.0.dtd">
 <vle_project version="1.3.0" date="2014-Aug-07 08:19:27" author="Genevieve Cirera">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="482" height="480"  >
+<model name="Top model" type="coupled" x="0" y="0" width="467" height="480"  >
 <submodels>
-<model name="Controleur" type="atomic" conditions="cond_Controleur" dynamics="dynControleur" x="95" y="73" width="40" height="30" >
+<model name="Controleur" type="atomic" conditions="cond_Controleur" dynamics="dynControleur" x="64" y="57" width="40" height="30" >
 </model>
 </submodels>
 <connections>

@@ -1,1 +1,1 @@
-install(FILES empty.vpz IC.vpz tp.vpz test_0.vpz DESTINATION exp)
+install(DIRECTORY . DESTINATION exp FILES_MATCHING PATTERN "*.vpz")

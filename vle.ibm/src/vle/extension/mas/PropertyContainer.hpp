@@ -1,9 +1,11 @@
 /*
+ * @file vle/extension/mas/PropertyContainer.hpp
+ *
  * This file is part of VLE, a framework for multi-modeling, simulation
  * and analysis of complex dynamical systems
  * http://www.vle-project.org
  *
- * Copyright (c) 2013 INRA http://www.inra.fr
+ * Copyright (c) 2013-2015 INRA http://www.inra.fr
  *
  * See the AUTHORS or Authors.txt file for copyright owners and contributors
  *
@@ -79,4 +81,3 @@ private:
 }// namespace vle extension mas
 
 #endif
-

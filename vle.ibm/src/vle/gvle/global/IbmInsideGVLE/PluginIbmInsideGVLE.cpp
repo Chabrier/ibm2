@@ -5,9 +5,7 @@
  * and analysis of complex dynamical systems
  * http://www.vle-project.org
  *
- * Copyright (c) 2003-2007 Gauthier Quesnel <quesnel@users.sourceforge.net>
- * Copyright (c) 2003-2011 ULCO http://www.univ-littoral.fr
- * Copyright (c) 2007-2011 INRA http://www.inra.fr
+ * Copyright (c) 2013-2015 INRA http://www.inra.fr
  *
  * See the AUTHORS or Authors.txt file for copyright owners and contributors
  *
@@ -24,7 +22,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <vle/gvle/GVLE.hpp>
 #include <vle/gvle/GVLEMenuAndToolbar.hpp>
 #include <vle/gvle/FileTreeView.hpp>
@@ -49,10 +46,8 @@
 #include <gtkmm/radioaction.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/tooltip.h>
+#include <gtkmm/notebook.h>
 
-#include <gtkmm/listbox.h>
-#include <gtkmm/listboxrow.h>
-#include <gtkmm/expander.h>
 #include <vle/vpz/Condition.hpp>
 
 namespace vle {
@@ -78,7 +73,6 @@ const std::string SCRIPT_DEFAULT =
  *
  */
 
-
 class PluginIbmInsideGVLE : public GlobalPlugin
 {
 public:
@@ -91,8 +85,8 @@ public:
      * @param[in/out] gvle : an access to everything
      */
     PluginIbmInsideGVLE(const std::string& package,
-                 const std::string& library,
-                 vle::gvle::GVLE* gvle):
+                        const std::string& library,
+                        vle::gvle::GVLE* gvle):
         GlobalPlugin(package, library, gvle), isMakingClass(false)
     {
     }
@@ -104,15 +98,12 @@ public:
     {
         mConnection.disconnect();
 
-        m_refActionGroup->remove(m_refActionGroup->get_action("FileTV_ContextLaunchIbm"));
-        m_refUIManager->remove_ui(mMergeId);
-
         if (mClasses) {
             mClasses->remove_all_columns();
         }
 
         for (std::list < sigc::connection >::iterator it = mList.begin();
-            it != mList.end(); ++it) {
+             it != mList.end(); ++it) {
             it->disconnect();
         }
     }
@@ -122,38 +113,18 @@ public:
      */
     void run()
     {
-        m_refUIManager = mGVLE->getFileTreeView()->getPopupUIManager();
-        m_refActionGroup = mGVLE->getFileTreeView()->getPopupActionGroup();
 
-        createNewActions();
+      Gtk::Menu& popupMenu = mGVLE->getFileTreeView()->getMenuPopup();
 
-        updateUI();
-    }
+      Gtk::Menu::MenuList& menulist = popupMenu.items();
 
-    /**
-     * @brief Add the item Open Ibm in the menu
-     */
-    void createNewActions()
-    {
-        m_refActionGroup->add(Gtk::Action::create("FileTV_ContextLaunchIbm", _("_Open Ibm")), sigc::mem_fun(*this, &PluginIbmInsideGVLE::onLaunchIbm));
-    }
+      menulist.push_back(
+			 Gtk::Menu_Helpers::MenuElem(
+						     _("_Open Ibm"),
+						     sigc::mem_fun(
+								   *this,
+								   &PluginIbmInsideGVLE::onLaunchIbm)));
 
-
-    void updateUI()
-    {
-#ifdef GLIBMM_EXCEPTIONS_ENABLED
-        try {
-            mMergeId = m_refUIManager->add_ui_from_string(UI_DEFINITION);
-        } catch(const Glib::Error& ex) {
-            std::cerr << "building menus failed: " <<  ex.what();
-        }
-#else
-        std::auto_ptr<Glib::Error> ex;
-        mMergeId = m_refUIManager->add_ui_from_string(UI_DEFINITION, ex);
-        if(ex.get()) {
-            std::cerr << "building menus failed: " <<  ex->what();
-        }
-#endif //GLIBMM_EXCEPTIONS_ENABLED
     }
 
     /**
@@ -189,7 +160,9 @@ public:
                                                      &PluginIbmInsideGVLE::onCancel));
             mXml->get_widget("textviewScript", mTextViewScript);
 
-            mXml->get_widget("listbox1", mListBox);
+	    //to replace
+            //mXml->get_widget("listbox1", mListBox);
+            mXml->get_widget("scriptNoteBook", mScriptEditor);
             mXml->get_widget("buttonMore", mButtonMore);
             mButtonMore->signal_clicked().connect(sigc::mem_fun(*this,
                                                      &PluginIbmInsideGVLE::onMoreScript));
@@ -277,19 +250,14 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     void createListViewRow(std::string title, std::string content) {
         Glib::RefPtr<Gtk::TextBuffer> buffer = Gtk::TextBuffer::create();
         buffer->set_text(content);
-        Gtk::TextView* newTextView = new Gtk::TextView(buffer);
-        newTextView->set_name(title);
-        newTextView->show();
+        Gtk::TextView* textView =  new Gtk::TextView(buffer);
+        Gtk::ScrolledWindow* scrolledWindow =  new Gtk::ScrolledWindow();
+        scrolledWindow->add(*textView);
 
-        Gtk::Expander* e = new Gtk::Expander(title, true);
-        e->add(*newTextView);
-        e->show();
-        Gtk::ListBoxRow* l = Gtk::manage(new Gtk::ListBoxRow());
-        l->set_name(title);
-        l->add(*e);
-        l->show_all();
-        mListBox->append(*l);
-        mScriptsCopy.insert(std::pair<std::string, Gtk::TextView*> (title, newTextView));
+        mScriptEditor->append_page(*scrolledWindow, title);
+        mScriptEditor->show_all_children();
+
+        mScriptsCopy.insert(std::pair<std::string, Gtk::TextView*> (title, textView));
     }
 
     void fillScripts() {
@@ -302,12 +270,16 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     }
 
     void onRemoveScript() {
-        Gtk::ListBoxRow* toRemove = mListBox->get_selected_row();
-        if (toRemove) {
-            std::string port = toRemove->get_name();
+        int i = mScriptEditor->get_current_page();
+
+        if (i >= 0) {
+            std::string port = mScriptEditor->get_tab_label_text(
+                *(mScriptEditor->get_nth_page(i)));
+
+            mScriptEditor->remove_page(i);
+            //std::string port = toRemove->get_name();
             mPortToRemove.push_back(port);
             mScriptsCopy.erase(port);
-            mListBox->remove(*toRemove);
         }
     }
 
@@ -343,7 +315,7 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
     bool openVpz()
     {
         FileTreeView* f = mGVLE->getFileTreeView();
-        std::string vpz_file = f->getSelectedVpz();
+        std::string vpz_file = f->getSelected();
 
         if (utils::Path::extension(vpz_file) == ".vpz")
         {
@@ -854,8 +826,9 @@ std::string fileToRemove = mGVLE->currentPackage().getSrcFile(*sit + ".cpp", vle
 
     bool                                        isMakingClass;
 
-    Gtk::Button*                                mButtonMore;
-    Gtk::ListBox*                               mListBox;
+    Gtk::Button*     mButtonMore;
+
+    Gtk::Notebook*                              mScriptEditor;
     std::map<std::string, Gtk::TextView*>       mScriptsCopy;
     std::vector<std::string>                    mPortToRemove;
     Gtk::Button*                                mButtonRemove;

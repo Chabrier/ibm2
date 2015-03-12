@@ -1,28 +1,27 @@
 /*
-* This file is part of VLE, a framework for multi-modeling, simulation
-* and analysis of complex dynamical systems.
-* http://www.vle-project.org
-*
-* Copyright (c) 2013 INRA http://www.inra.fr
-*
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to
-* deal in the Software without restriction, including without limitation the
-* rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-* sell copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in
-* all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-* IN THE SOFTWARE.
-*/
+ * @file vle/ibm/ControleurProxy.cpp
+ *
+ * This file is part of VLE, a framework for multi-modeling, simulation
+ * and analysis of complex dynamical systems
+ * http://www.vle-project.org
+ *
+ * Copyright (c) 2013-2015 INRA http://www.inra.fr
+ *
+ * See the AUTHORS or Authors.txt file for copyright owners and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include "ControleurProxy.hpp"
 #include "Controleur.hpp"
 
@@ -45,8 +44,8 @@ Lunar<ControleurProxy>::RegType ControleurProxy::methods[] = {
     LUNAR_DECLARE_METHOD(ControleurProxy, addEvent),
     LUNAR_DECLARE_METHOD(ControleurProxy, getParam),
     {0,0} };
-    
-    
+
+
 void ControleurProxy::setControleur ( Controleur* controleur) {mControleur = controleur;}
 
 ControleurProxy::~ControleurProxy() { printf("deleted GodProxy (%p)\n", this); }
@@ -62,14 +61,14 @@ int ControleurProxy::addModelWithParam(lua_State *L) {
     std::map<std::string, vv::Value*> variableToModify;
     int top = lua_gettop(L);
     std::string varName = "";
-    
+
     for (int i = 3; i <= top; i++) {
         if (i%2 != 0) {
             varName = lua_tostring(L, i);
         } else {
             vv::Value* varValue = new vv::Double(getValueFromParam(L, i));
             variableToModify.insert(std::pair<std::string, vle::value::Value* >(varName, varValue));
-        }        
+        }
     }
     int nbi = getValueFromParam(L, 1);
     mControleur->addModelWith(nbi, luaL_checkstring(L, 2), variableToModify);
@@ -81,13 +80,13 @@ int ControleurProxy::delModel(lua_State *L) {
     for (int i=1; i<=lua_gettop(L); i++) {
         mControleur->delOneModel(lua_tostring(L, i));
     }
-    
+
     return 0;
 }
 
 int ControleurProxy::getModelValue(lua_State *L) {
     std::string modelName (luaL_checkstring(L, 1));
-    
+
     double d = 0;
     if (lua_gettop(L) == 2) {
         std::string varName (luaL_checkstring(L, 2));

@@ -1,6 +1,26 @@
 /*
- * @file Controleur.cpp
+ * @file vle/ibm/Controleur.cpp
  *
+ * This file is part of VLE, a framework for multi-modeling, simulation
+ * and analysis of complex dynamical systems
+ * http://www.vle-project.org
+ *
+ * Copyright (c) 2013-2015 INRA http://www.inra.fr
+ *
+ * See the AUTHORS or Authors.txt file for copyright owners and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ControleurProxy.hpp"
 #include "Controleur.hpp"
@@ -52,8 +72,8 @@ Controleur::Controleur(const vd::ExecutiveInit& mdl,
             mScript += "function " + it->first + " ()\n" + it->second->toXml().value() + "\nend\n";
         }
     }
-    
-    
+
+
     if (events.exist("Script"))
         mScript += events.getXml("Script");
     else
@@ -91,10 +111,10 @@ void Controleur::doScriptAt(const Effect& e) {
     execInit(e.get("script")->toString().value());
     double t = e.get("frequency")->toDouble().value();
     if (t != vd::infinity) {
-        t += mCurrentTime; 
+        t += mCurrentTime;
     }
     Effect update = doScriptEffectAt(t, e.getOrigin(), e.get("script")->toString().value(), e.get("frequency")->toDouble().value());
-    
+
     mScheduler.update(update);
 }
 
@@ -107,7 +127,7 @@ void Controleur::addEffectAt(double time, double frequency, std::string function
     mIndexEffect++;
     std::string functionToExec = functionName + "()";
     Effect effect = doScriptEffectAt(time, idEffect, functionToExec, frequency);
-    
+
     mScheduler.addEffect(effect);
 }
 
@@ -129,7 +149,7 @@ vv::Value* Controleur::observation(const vd::ObservationEvent& event) const {
 
 /**
  * @brief Create nb_clone modelwith the className Class
- * 
+ *
  * @param int nb_clone
  * @param std::string className
  */
@@ -139,7 +159,7 @@ void Controleur::addInstruction(int nb_clone, std::string className) {
 	}
 }
 
-std::map <std::string, vv::Value*> Controleur::modifyParameter(std::string className, std::map <std::string, vv::Value*> variableToModify) 
+std::map <std::string, vv::Value*> Controleur::modifyParameter(std::string className, std::map <std::string, vv::Value*> variableToModify)
 {
     std::map <std::string, vv::Value*> variableModified;
     vc::Conditions& cl = conditions();
@@ -149,7 +169,7 @@ std::map <std::string, vv::Value*> Controleur::modifyParameter(std::string class
 	    variableModified.insert(std::pair<std::string, vv::Value*>(it->first, d));
 	    c.setValueToPort(it->first, *(it->second));
 	}
-	
+
 	return variableModified;
 }
 
@@ -172,7 +192,7 @@ void Controleur::delOneModel(std::string modelName) {
  *
  * @param std::string nb
  *
- * @return int 
+ * @return int
  */
 double Controleur::readNumber(std::string nb) {
     if (mEvents->exist(nb)) {
@@ -184,11 +204,11 @@ double Controleur::readNumber(std::string nb) {
                 return mEvents->getDouble(nb);
                 break;
             default :
-                throw utils::ArgError(fmt("Type of variable `%1%' not an int or double") % nb);   
+                throw utils::ArgError(fmt("Type of variable `%1%' not an int or double") % nb);
         }
-        
+
     }
-    
+
     throw utils::ArgError(fmt("Variable `%1%' not found ") % nb);
 }
 
@@ -197,7 +217,7 @@ std::string Controleur::addOneModel(std::string className) {
 	const vpz::BaseModel* newModel = createModelFromClass(className, modelName);
 	connectionModelToExec(modelName, newModel);
 	connectionExecToModel(modelName);
-	
+
 	return modelName;
 }
 
@@ -280,7 +300,7 @@ void Controleur::removeInputPortExec(std::string modelName) {
     for (unsigned int i=0; i<toRemove.size(); i++) {
         removeInputPort(getModelName(), toRemove[i]);
     }
-    
+
 }
 
 /**
@@ -298,14 +318,14 @@ void Controleur::putInStructure(std::string modelName, std::string variable, vle
         std::map <std::string, vle::value::Value*> secondMap;
         secondMap.insert(std::pair<std::string,vle::value::Value*>(variable, value->clone()));
         mData.insert(std::pair<std::string,std::map <std::string, vle::value::Value*> >(modelName, secondMap));
-        
+
     } else {
         std::map <std::string, vle::value::Value*>& temp = mData.find(modelName)->second;
         if (!temp.insert(std::pair<std::string,vle::value::Value*>(variable, value->clone())).second) {
             temp[variable] = value->clone();
         }
     }
-    
+
 }
 
 void Controleur::updateData(const vd::ExternalEventList& events) {
@@ -343,7 +363,7 @@ void Controleur::setModelValue(std::string modelName, std::string varName, doubl
 }
 
 std::string Controleur::getModelNameFromClassNb(std::string className, int n) {
-    int i = 0; 
+    int i = 0;
     for (std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it = mData.begin(); it!=mData.end(); ++it) {
         if (compareModelClass(it->first, className)) {
             i++;
@@ -368,7 +388,7 @@ std::string Controleur::getModelNameFromPort(std::string s) {
 }
 
 int Controleur::countModelOfClass(std::string className) {
-    int i = 0; 
+    int i = 0;
     for (std::map <std::string, std::map <std::string, vle::value::Value*> >::iterator it = mData.begin(); it!=mData.end(); ++it) {
         if (compareModelClass(it->first, className)) {
             i++;
